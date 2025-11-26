@@ -1,193 +1,90 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Checkbox } from "../ui/checkbox";
 import { Button } from "../ui/button";
-import { ArrowUpRight, Trash2, Loader2 } from "lucide-react";
+import { ArrowUpRight, Trash2, Loader2, Edit } from "lucide-react";
 import { toast } from "sonner";
 import { Pagination } from "../pagination/Pagination";
 import { DetailsModal } from "../modals/DetailsModal";
-
-interface Product {
-  id: string;
-  name: string;
-  category: string;
-  price: number;
-  size: number;
-  date: string;
-  time: string;
-  image: string;
-}
-
-interface ProductTableProps {
-  selectedCategory: string;
-  onCategoryChange: (category: string) => void;
-}
-
-const mockProducts: Product[] = [
-  {
-    id: "021231",
-    name: "Beigi Coffe (Navy)",
-    category: "Hat",
-    price: 20.0,
-    size: 40,
-    date: "04/17/23",
-    time: "8:25 PM",
-    image: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: "021232",
-    name: "Story Honzo (Cream)",
-    category: "Hat",
-    price: 20.0,
-    size: 40,
-    date: "04/17/23",
-    time: "8:25 PM",
-    image: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: "021233",
-    name: "Kanky Kitadakate (Green)",
-    category: "Hat",
-    price: 20.0,
-    size: 40,
-    date: "04/17/23",
-    time: "8:25 PM",
-    image: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: "021234",
-    name: "Story Honzo (Black)",
-    category: "Hat",
-    price: 20.0,
-    size: 40,
-    date: "04/17/23",
-    time: "8:25 PM",
-    image: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: "021235",
-    name: "Coffee Mug Classic",
-    category: "Mug",
-    price: 15.0,
-    size: 350,
-    date: "04/16/23",
-    time: "7:30 PM",
-    image: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: "021236",
-    name: "Tea Mug Premium",
-    category: "Mug",
-    price: 18.0,
-    size: 400,
-    date: "04/16/23",
-    time: "7:30 PM",
-    image: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: "021237",
-    name: "Smart Keychain Pro",
-    category: "mart Keychains",
-    price: 25.0,
-    size: 5,
-    date: "04/15/23",
-    time: "6:45 PM",
-    image: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: "021238",
-    name: "LED Keychain Light",
-    category: "mart Keychains",
-    price: 12.0,
-    size: 3,
-    date: "04/15/23",
-    time: "6:45 PM",
-    image: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: "021239",
-    name: "Canvas Tote Bag",
-    category: "Bag",
-    price: 30.0,
-    size: 45,
-    date: "04/14/23",
-    time: "5:20 PM",
-    image: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: "021240",
-    name: "Leather Messenger Bag",
-    category: "Bag",
-    price: 85.0,
-    size: 60,
-    date: "04/14/23",
-    time: "5:20 PM",
-    image: "/placeholder.svg?height=40&width=40",
-  },
-];
+import { AddProductModal } from "../modals/AddProductModal";
+import { useGetAllProductsQuery, useDeleteProductMutation, useUpdateProductMutation } from "@/redux/api/api";
+import type { Product, ProductTableProps } from "@/types";
 
 export function ProductTable({
   selectedCategory,
   onCategoryChange,
 }: ProductTableProps) {
-  const [allProducts] = useState<Product[]>(mockProducts);
-  const [products, setProducts] = useState<Product[]>([]);
+  const navigate = useNavigate();
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
-  const [categories, setCategories] = useState<Record<string, number>>({});
-  const [loading, setLoading] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [productToEdit, setProductToEdit] = useState<Product | null>(null);
+  const checkboxRef = useRef<HTMLInputElement>(null);
 
   const itemsPerPage = 8;
 
-  const fetchProducts = (page: number, category: string) => {
-    setLoading(true);
+  // Fetch products from API
+  const { data: productsData, isLoading, refetch } = useGetAllProductsQuery({
+    category: selectedCategory === 'all' ? undefined : selectedCategory,
+    page: currentPage,
+    limit: itemsPerPage,
+  });
 
-    // Simulate API delay
-    setTimeout(() => {
-      let filteredProducts = allProducts;
+  const [deleteProduct, { isLoading: deleting }] = useDeleteProductMutation();
+  const [updateProduct, { isLoading: updating }] = useUpdateProductMutation();
 
-      if (category !== "all") {
-        filteredProducts = allProducts.filter(
-          (product) => product.category === category
-        );
-      }
+  // Debug: Log the API response
+  // console.log('Products API Response:', productsData);
+  // console.log('Full Response Structure:', JSON.stringify(productsData, null, 2));
 
-      // Calculate pagination
-      const startIndex = (page - 1) * itemsPerPage;
-      const endIndex = startIndex + itemsPerPage;
-      const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+  // Extract data from API response - backend returns { success, message, data: {...} }
+  let products = [];
+  
+  if (productsData?.data) {
+    const dataObj = productsData.data;
+    // Check different possible locations for the products array
+    let rawProducts = [];
+    if (Array.isArray(dataObj.data)) {
+      rawProducts = dataObj.data;
+    } else if (Array.isArray(dataObj.products)) {
+      rawProducts = dataObj.products;
+    } else if (Array.isArray(dataObj.result)) {
+      rawProducts = dataObj.result;
+    } else {
+      console.error('Products array not found in:', dataObj);
+      rawProducts = [];
+    }
+    
+    // Map _id to id for frontend compatibility
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    products = rawProducts.map((product: any) => ({
+      ...product,
+      id: product._id || product.id,
+    }));
+  }
 
-      // Calculate categories count
-      const categoryCount = allProducts.reduce((acc, product) => {
-        acc[product.category] = (acc[product.category] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-
-      setProducts(paginatedProducts);
-      setTotalPages(Math.ceil(filteredProducts.length / itemsPerPage));
-      setTotalItems(filteredProducts.length);
-      setCategories(categoryCount);
-      setSelectedProducts([]);
-      setLoading(false);
-    }, 300);
-  };
-
-  useEffect(() => {
-    fetchProducts(currentPage, selectedCategory);
-  }, [currentPage, selectedCategory]);
+  const totalPages = productsData?.data?.meta?.totalPages || productsData?.data?.pagination?.totalPages || 1;
+  
+  // Calculate categories from products if not provided by API
+  const categories = productsData?.data?.categories || products.reduce((acc: Record<string, number>, product: Product) => {
+    const categoryName = typeof product.category === 'object' && product.category !== null 
+      ? product.category.name 
+      : (product.category || 'Uncategorized');
+    acc[categoryName] = (acc[categoryName] || 0) + 1;
+    return acc;
+  }, {});
 
   const handleCategoryClick = (category: string) => {
     onCategoryChange(category);
     setCurrentPage(1);
+    setSelectedProducts([]);
   };
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedProducts(products.map((product) => product.id));
+      setSelectedProducts(products.map((product: Product) => product.id));
     } else {
       setSelectedProducts([]);
     }
@@ -204,24 +101,77 @@ export function ProductTable({
   const handleBulkDelete = async () => {
     if (selectedProducts.length === 0) return;
 
-    setDeleting(true);
+    try {
+      // Delete products one by one
+      await Promise.all(
+        selectedProducts.map((id) => deleteProduct(id).unwrap())
+      );
 
-    // Simulate API delay
-    setTimeout(() => {
       toast.success(
         `Successfully deleted ${selectedProducts.length} product(s)`
       );
 
-      // If current page becomes empty after deletion, go to previous page
-      const remainingItems = totalItems - selectedProducts.length;
-      const maxPage = Math.ceil(remainingItems / itemsPerPage);
-      const newPage =
-        currentPage > maxPage ? Math.max(1, maxPage) : currentPage;
+      setSelectedProducts([]);
+      refetch();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to delete products");
+    }
+  };
 
-      setCurrentPage(newPage);
-      fetchProducts(newPage, selectedCategory);
-      setDeleting(false);
-    }, 500);
+  const handleSingleDelete = async (productId: string) => {
+    try {
+      await deleteProduct(productId).unwrap();
+      toast.success("Product deleted successfully");
+      setSelectedProducts((prev) => prev.filter((id) => id !== productId));
+      refetch();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to delete product");
+    }
+  };
+
+  const handleEdit = (product: Product) => {
+    setProductToEdit(product);
+    setIsEditModalOpen(true);
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleUpdateProduct = async (productData: any, productId?: string) => {
+    if (!productId) return;
+    
+    try {
+      // Get the original product to extract category ID
+      const originalProduct = products.find((p: Product) => p.id === productId);
+      
+      // Convert to FormData for file upload
+      const formData = new FormData();
+      formData.append('name', productData.name);
+      
+      // Send category ID if it exists, otherwise send the category name
+      if (originalProduct && typeof originalProduct.category === 'object' && originalProduct.category !== null) {
+        formData.append('category', originalProduct.category._id);
+      } else {
+        formData.append('category', productData.category);
+      }
+      
+      formData.append('description', productData.description || '');
+      formData.append('price', productData.price.toString());
+      
+      // Only append image if a new file was selected
+      if (productData.image && productData.image instanceof File) {
+        formData.append('image', productData.image);
+      }
+      
+      await updateProduct({ id: productId, data: formData }).unwrap();
+      toast.success("Product updated successfully");
+      setProductToEdit(null);
+      setIsEditModalOpen(false);
+      refetch();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to update product");
+    }
   };
 
   const handleActionClick = (product: Product) => {
@@ -239,12 +189,19 @@ export function ProductTable({
   const isIndeterminate =
     selectedProducts.length > 0 && selectedProducts.length < products.length;
 
+  // Set indeterminate state on checkbox
+  useEffect(() => {
+    if (checkboxRef.current) {
+      checkboxRef.current.indeterminate = isIndeterminate;
+    }
+  }, [isIndeterminate]);
+
   // Category tabs data
   const categoryTabs = [
     {
       key: "all",
       label: "All",
-      count: Object.values(categories).reduce((sum, count) => sum + count, 0),
+      count: Object.values(categories as Record<string, number>).reduce((sum, count) => sum + count, 0),
     },
     { key: "Hat", label: "Hat", count: categories["Hat"] || 0 },
     { key: "Mug", label: "Mug", count: categories["Mug"] || 0 },
@@ -313,12 +270,6 @@ export function ProductTable({
                   <Checkbox
                     checked={isAllSelected}
                     onCheckedChange={handleSelectAll}
-                    className={
-                      isIndeterminate ? "data-[state=checked]:bg-blue-500" : ""
-                    }
-                    ref={(el) => {
-                      if (el) el.indeterminate = isIndeterminate;
-                    }}
                   />
                 </th>
                 <th className="text-left p-4 font-medium text-gray-900">
@@ -339,7 +290,7 @@ export function ProductTable({
               </tr>
             </thead>
             <tbody>
-              {loading ? (
+              {isLoading ? (
                 <tr>
                   <td colSpan={6} className="p-8 text-center">
                     <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
@@ -353,7 +304,7 @@ export function ProductTable({
                   </td>
                 </tr>
               ) : (
-                products.map((product) => (
+                products.map((product: Product) => (
                   <tr key={product.id} className="border-b hover:bg-gray-50">
                     <td className="p-4">
                       <Checkbox
@@ -379,23 +330,58 @@ export function ProductTable({
                       </div>
                     </td>
                     <td className="p-4 text-gray-900">
-                      ${product.price.toFixed(2)}
+                      ${typeof product.price === 'number' ? product.price.toFixed(2) : parseFloat(String(product.price || '0')).toFixed(2)}
                     </td>
                     <td className="p-4 text-gray-900">{product.size}</td>
                     <td className="p-4 text-gray-500">
                       <div>
-                        <p>{product.date}</p>
-                        <p className="text-sm">at {product.time}</p>
+                        <p>
+                          {product.date || (product.createdAt ? new Date(product.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : "N/A")}
+                        </p>
+                        <p className="text-sm">
+                          at {product.time || (product.createdAt ? new Date(product.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : "N/A")}
+                        </p>
                       </div>
                     </td>
                     <td className="p-4">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleActionClick(product)}
-                      >
-                        <ArrowUpRight className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleActionClick(product)}
+                          title="View details"
+                        >
+                          <ArrowUpRight className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEdit(product)}
+                          disabled={updating}
+                          className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                          title="Edit product"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleSingleDelete(product.id)}
+                          disabled={deleting}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          title="Delete product"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => navigate(`/assign?productId=${product.id}`)}
+                          className="bg-[#FFD700] text-[#003366] hover:bg-amber-400 rounded-full px-4"
+                          title="Assign product"
+                        >
+                          Add New Assign
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -406,7 +392,7 @@ export function ProductTable({
       </div>
 
       {/* Pagination */}
-      {!loading && totalPages > 1 && (
+      {!isLoading && totalPages > 1 && (
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
@@ -420,6 +406,25 @@ export function ProductTable({
         type="product"
         isOpen={isModalOpen}
         onClose={handleCloseModal}
+      />
+
+      {/* Edit Product Modal */}
+      <AddProductModal
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        onSave={handleUpdateProduct}
+        editMode={true}
+        isLoading={updating}
+        initialData={productToEdit ? {
+          id: productToEdit.id,
+          category: typeof productToEdit.category === 'object' && productToEdit.category !== null 
+            ? productToEdit.category.name 
+            : productToEdit.category,
+          name: productToEdit.name,
+          description: "",
+          price: productToEdit.price,
+          image: productToEdit.image,
+        } : undefined}
       />
     </div>
   );

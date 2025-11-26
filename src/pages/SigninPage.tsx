@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,6 +18,12 @@ import { Link, useNavigate } from "react-router";
 import { Checkbox } from "@/components/ui/checkbox";
 import signinImage from "@/assets/signin.png";
 
+// RTK Query & Redux
+
+import { useDispatch } from "react-redux";
+import { setUser } from "@/redux/features/auth/authSlice";
+import { useUserLoginMutation } from "@/redux/api/api";
+
 const signInSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -28,6 +35,10 @@ type TSignInFormData = z.infer<typeof signInSchema>;
 export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  // RTK Query Login Mutation
+  const [userLogin, { isLoading }] = useUserLoginMutation();
 
   const form = useForm({
     resolver: zodResolver(signInSchema),
@@ -40,16 +51,35 @@ export default function SignInPage() {
 
   const onSubmit = async (data: TSignInFormData) => {
     try {
-      console.log("Sign in data:", data);
-      // Perform sign in logic here
+      const res = await userLogin({
+        email: data.email,
+        password: data.password,
+      }).unwrap();
+      
+      console.log("Login response:", res);
+      
+      // Extract token - check if it's accessToken or token
+      const token = res.data?.accessToken || res.data?.token;
+      
+      // Save user & token in Redux
+      dispatch(
+        setUser({
+          user: res.data.user,
+          token: token,
+        })
+      );
+
+      toast.success("Login successful!");
 
       form.reset();
-      toast.success("You have been signed in successfully!");
-    } catch (error) {
-      // Show error toast using Sonner
-      toast.error("Failed to sign in. Please check your credentials.");
+
+      navigate("/dashboard");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to sign in.");
     }
   };
+
   const handleBack = () => {
     if (window.history.length > 1) {
       navigate(-1);
@@ -60,25 +90,21 @@ export default function SignInPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Left side - Illustration */}
+      {/* Left side */}
       <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12">
         <div>
-          <div className="flex items-center justify-center">
-            <img
-              src={signinImage}
-              alt="Shopping illustration"
-              className="max-w-xl h-auto"
-            />
-          </div>
+          <img
+            src={signinImage}
+            alt="Shopping illustration"
+            className="max-w-xl h-auto"
+          />
         </div>
       </div>
 
-      {/* Right side - Sign In Form */}
+      {/* Right side */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
-          {/* Sign In Form */}
           <div className="bg-white rounded-2xl shadow-lg p-8">
-            {/* Header */}
             <div className="flex items-center mb-8">
               <Button
                 variant="ghost"
@@ -90,12 +116,10 @@ export default function SignInPage() {
               </Button>
               <h1 className="text-2xl font-semibold text-gray-900">Sign In</h1>
             </div>
+
             <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-6"
-              >
-                {/* Email Field */}
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                {/* Email */}
                 <FormField
                   control={form.control}
                   name="email"
@@ -103,7 +127,7 @@ export default function SignInPage() {
                     <FormItem>
                       <FormControl>
                         <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                           <Input
                             {...field}
                             type="email"
@@ -117,7 +141,7 @@ export default function SignInPage() {
                   )}
                 />
 
-                {/* Password Field */}
+                {/* Password */}
                 <FormField
                   control={form.control}
                   name="password"
@@ -125,7 +149,7 @@ export default function SignInPage() {
                     <FormItem>
                       <FormControl>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                           <Input
                             {...field}
                             type={showPassword ? "text" : "password"}
@@ -136,7 +160,7 @@ export default function SignInPage() {
                             type="button"
                             variant="ghost"
                             size="sm"
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 h-auto p-0"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 h-auto p-0"
                             onClick={() => setShowPassword(!showPassword)}
                           >
                             {showPassword ? (
@@ -152,7 +176,7 @@ export default function SignInPage() {
                   )}
                 />
 
-                {/* Remember Me & Forgot Password */}
+                {/* Remember & Forgot */}
                 <div className="flex items-center justify-between">
                   <FormField
                     control={form.control}
@@ -160,11 +184,10 @@ export default function SignInPage() {
                     render={({ field }) => (
                       <FormItem className="flex items-center space-x-2">
                         <FormControl>
-                          {/* Add some styles to the checkbox */}
                           <Checkbox
                             checked={field.value}
                             onCheckedChange={field.onChange}
-                            className="h-4 w-4 rounded-sm border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                            className="h-4 w-4"
                           />
                         </FormControl>
                         <label className="text-sm text-gray-600">
@@ -185,25 +208,19 @@ export default function SignInPage() {
                   </Link>
                 </div>
 
-                {/* Sign In Button */}
+                {/* Submit */}
                 <Button
                   type="submit"
                   className="w-full h-12 bg-yellow-400 hover:bg-yellow-500 text-black font-medium rounded-full"
-                  disabled={form.formState.isSubmitting}
+                  disabled={isLoading}
                 >
-                  {form.formState.isSubmitting ? "Signing In..." : "Sign In"}
+                  {isLoading ? "Signing In..." : "Sign In"}
                 </Button>
               </form>
             </Form>
           </div>
         </div>
       </div>
-
-      {/* Forgot Password Modal
-      <ForgotPasswordModal
-        open={isForgotPasswordOpen}
-        onOpenChange={setIsForgotPasswordOpen}
-      /> */}
     </div>
   );
 }

@@ -2,33 +2,7 @@ import { useState } from "react";
 import { X, Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
 import jsPDF from "jspdf";
-
-interface Product {
-  id: string;
-  name: string;
-  category: string;
-  price: number;
-  size: number;
-  date: string;
-  time: string;
-  image: string;
-}
-
-interface Customer {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  purchases: number;
-  address: string;
-}
-
-interface DetailsModalProps {
-  data: Product | Customer | null;
-  type: "product" | "customer";
-  isOpen: boolean;
-  onClose: () => void;
-}
+import type { Product, Customer, DetailsModalProps } from "@/types";
 
 export function DetailsModal({
   data,
@@ -94,14 +68,37 @@ export function DetailsModal({
 
       if (type === "product") {
         const product = data as Product;
+        const categoryName = typeof product.category === 'object' && product.category !== null 
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ? (product.category as any).name 
+          : product.category;
+        
+        // Format date from backend (createdAt or date field)
+        let formattedDate = "N/A";
+        if (product.date) {
+          formattedDate = product.date;
+        } else if (product.createdAt) {
+          formattedDate = new Date(product.createdAt).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          });
+        } else if (product.updatedAt) {
+          formattedDate = new Date(product.updatedAt).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          });
+        }
+        
         details = [
           { label: "User Name:", value: "Enrique" },
           { label: "Product Name:", value: product.name },
           { label: "Phone Number:", value: "098 893459" },
-          { label: "Date:", value: product.date },
-          { label: "Price:", value: `$${product.price.toFixed(2)}` },
+          { label: "Date:", value: formattedDate },
+          { label: "Price:", value: `$${typeof product.price === 'number' ? product.price.toFixed(2) : parseFloat(String(product.price || '0')).toFixed(2)}` },
           { label: "Product ID:", value: product.id },
-          { label: "Category:", value: product.category },
+          { label: "Category:", value: categoryName },
           { label: "Size:", value: `${product.size} units` },
         ];
       } else {
@@ -158,6 +155,10 @@ export function DetailsModal({
   const renderModalContent = () => {
     if (type === "product") {
       const product = data as Product;
+      const categoryName = typeof product.category === 'object' && product.category !== null 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ? (product.category as any).name 
+        : product.category;
       return (
         <>
           <div className="flex justify-between items-center py-2 border-b border-gray-100">
@@ -174,12 +175,14 @@ export function DetailsModal({
           </div>
           <div className="flex justify-between items-center py-2 border-b border-gray-100">
             <span className="text-gray-600">Date:</span>
-            <span className="text-gray-800 font-medium">{product.date}</span>
+            <span className="text-gray-800 font-medium">
+              {product.date || (product.createdAt ? new Date(product.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : (product.updatedAt ? new Date(product.updatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : "N/A"))}
+            </span>
           </div>
           <div className="flex justify-between items-center py-2 border-b border-gray-100">
             <span className="text-gray-600">Price:</span>
             <span className="text-gray-800 font-medium">
-              ${product.price.toFixed(2)}
+              ${typeof product.price === 'number' ? product.price.toFixed(2) : parseFloat(String(product.price || '0')).toFixed(2)}
             </span>
           </div>
           <div className="flex justify-between items-center py-2 border-b border-gray-100">
@@ -189,7 +192,7 @@ export function DetailsModal({
           <div className="flex justify-between items-center py-2 border-b border-gray-100">
             <span className="text-gray-600">Category:</span>
             <span className="text-gray-800 font-medium">
-              {product.category}
+              {categoryName}
             </span>
           </div>
           <div className="flex justify-between items-center py-2 border-b border-gray-100">

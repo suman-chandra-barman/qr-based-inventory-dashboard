@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router";
 import signinImage from "@/assets/signin.png";
+import { useForgotPasswordMutation } from "@/redux/api/api";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -23,6 +24,7 @@ type TForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPasswordPage() {
   const navigate = useNavigate();
+  const [forgotPassword, { isLoading }] = useForgotPasswordMutation();
 
   const form = useForm({
     resolver: zodResolver(forgotPasswordSchema),
@@ -33,15 +35,15 @@ export default function ForgotPasswordPage() {
 
   const onSubmit = async (data: TForgotPasswordFormData) => {
     try {
-      console.log("Forgot Password data:", data);
-      // Perform Forgot Password logic here
+      const res = await forgotPassword({ email: data.email }).unwrap();
+      console.log("Forgot Password response:", res);
 
-      navigate("/otp-verification", { state: { email: data.email } });
+      toast.success(res?.message || "OTP sent successfully!");
       form.reset();
-      toast.success("OTP Send successfully!");
-    } catch (error) {
-      // Show error toast using Sonner
-      toast.error("Failed to Forgot Password. Please check your credentials.");
+      navigate("/otp-verification", { state: { email: data.email } });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to send OTP. Please try again.");
     }
   };
   const handleBack = () => {
@@ -116,9 +118,9 @@ export default function ForgotPasswordPage() {
                 <Button
                   type="submit"
                   className="w-full h-12 bg-yellow-400 hover:bg-yellow-500 text-black font-medium rounded-full"
-                  disabled={form.formState.isSubmitting}
+                  disabled={isLoading}
                 >
-                  {form.formState.isSubmitting ? "Sending..." : "Send OTP"}
+                  {isLoading ? "Sending..." : "Send OTP"}
                 </Button>
               </form>
             </Form>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,9 +10,23 @@ import {
   ChevronRight,
   HomeIcon,
   LogOut,
+  LogIn,
 } from "lucide-react";
 import logo from "../../assets/logo.png";
 import { useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import type { RootState } from "@/redux/store";
+import { logout } from "@/redux/features/auth/authSlice";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 interface SidebarProps {
   className?: string;
@@ -49,6 +63,11 @@ const generalNavItems: NavItem[] = [
     icon: Users,
     href: "customers",
   },
+  {
+    title: "Assign",
+    icon: Users,
+    href: "assign",
+  },
 ];
 
 const toolsNavItems: NavItem[] = [
@@ -67,6 +86,20 @@ const Sidebar: React.FC<SidebarProps> = ({
   setIsCollapsed,
 }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+  const handleLogoutConfirm = () => {
+    dispatch(logout());
+    setIsLogoutModalOpen(false);
+    toast.success("Logged out successfully");
+    navigate("/signin");
+  };
+
+  const handleLogin = () => {
+    navigate("/signin");
+  };
 
   const NavItemComponent = ({ item }: { item: NavItem }) => {
     const isActive = activeItem === item.href;
@@ -162,11 +195,56 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       {/* User Profile */}
       <div className="p-4 border-t border-border text-red-400">
-        <Button variant="outline" className="w-full text-red-400">
-          <LogOut className={`${isCollapsed ? "h-5 w-5" : "h-4 w-4"}`} />{" "}
-          {!isCollapsed && <span>Log out</span>}
-        </Button>
+        {isAuthenticated ? (
+          <Button 
+            variant="outline" 
+            className="w-full text-red-400 hover:text-red-500 hover:bg-red-50"
+            onClick={() => setIsLogoutModalOpen(true)}
+          >
+            <LogOut className={`${isCollapsed ? "h-5 w-5" : "h-4 w-4"}`} />
+            {!isCollapsed && <span>Log out</span>}
+          </Button>
+        ) : (
+          <Button 
+            variant="outline" 
+            className="w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+            onClick={handleLogin}
+          >
+            <LogIn className={`${isCollapsed ? "h-5 w-5" : "h-4 w-4"}`} />
+            {!isCollapsed && <span>Log in</span>}
+          </Button>
+        )}
       </div>
+
+      {/* Logout Confirmation Modal */}
+      <Dialog open={isLogoutModalOpen} onOpenChange={setIsLogoutModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">Confirm Logout</DialogTitle>
+            <DialogDescription className="text-gray-600 mt-2">
+              Are you sure you want to logout? You will need to login again to access your account.
+            </DialogDescription>
+          </DialogHeader>
+       <DialogFooter className="flex gap-4 px-2">
+  <Button
+    variant="outline"
+    onClick={() => setIsLogoutModalOpen(false)}
+    className="w-full sm:w-auto"
+  >
+    Cancel
+  </Button>
+
+  <Button
+    variant="destructive"
+    onClick={handleLogoutConfirm}
+    className="w-full sm:w-auto bg-red-500 hover:bg-red-600"
+  >
+    Yes, Logout
+  </Button>
+</DialogFooter>
+
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

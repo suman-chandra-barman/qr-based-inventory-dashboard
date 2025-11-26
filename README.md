@@ -67,3 +67,4 @@ export default tseslint.config([
   },
 ])
 ```
+# qr-based-inventory-dashboard

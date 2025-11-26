@@ -15,10 +15,12 @@ import PersonalInformationPage from "@/pages/PersonalInformationPage";
 import EditPersonalInformationPage from "@/pages/EditPersonalInformationPage";
 import NotFoundPage from "@/pages/NotFoundPage";
 import DashboardPage from "@/pages/DashboardPage";
+import AdminRoute from "@/components/auth/AdminRoute";
 import { ChangePasswordPage } from "@/pages/ChangePasswordPage";
 import TermsConditionPage from "@/pages/TermsConditionPage";
 import EditTermsConditionPage from "@/pages/EditTermsConditionPage";
 import PrivacyPolicyPage from "@/pages/PrivacyPolicyPage";
+import Assign from "@/pages/Assign";
 
 const router = createBrowserRouter([
   {
@@ -28,11 +30,23 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <DashboardPage />,
+        element: (
+          <AdminRoute>
+            <DashboardPage />
+          </AdminRoute>
+        ),
       },
       {
         path: "/dashboard",
-        element: <DashboardPage />,
+        element: (
+          <AdminRoute>
+            <DashboardPage />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "/products",
+        element: <ProductsPage />,
       },
       {
         path: "/categories",
@@ -41,6 +55,10 @@ const router = createBrowserRouter([
       {
         path: "/customers",
         element: <CustomersPage />,
+      },
+       {
+        path: "/assign",
+        element: <Assign />,
       },
       {
         path: "/settings",
@@ -82,10 +100,7 @@ const router = createBrowserRouter([
         path: "/settings/about-us/edit",
         element: <EditAboutUsPage />,
       },
-      {
-        path: "/products",
-        element: <ProductsPage />,
-      },
+      
     ],
   },
   {
@@ -103,6 +118,10 @@ const router = createBrowserRouter([
   {
     path: "reset-password",
     element: <ResetPasswordPage />,
+  },
+   {
+    path: "change-password",
+    element: <ChangePasswordPage />,
   },
 ]);
 

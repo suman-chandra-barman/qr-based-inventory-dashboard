@@ -1,0 +1,1627 @@
+{
+	"info": {
+		"_postman_id": "7473d7a3-ea79-4a0b-9605-ba703d7537ac",
+		"name": "Qr-based-inventory",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "27403352",
+		"_collection_link": "https://planetary-shuttle-920024.postman.co/workspace/Qr-based-inventory~5c93e308-fa3c-452d-9b50-9126a1efee24/collection/27403352-7473d7a3-ea79-4a0b-9605-ba703d7537ac?action=share&source=collection_link&creator=27403352"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "user",
+					"item": [
+						{
+							"name": "create user",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"rifat\",\r\n    \"email\": \"rifatmiafh373@gmail.com\",\r\n    \"password\": \"12345678\",\r\n    \"phone\": \"001566356\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/user/create-user",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"user",
+										"create-user"
+									],
+									"query": [
+										{
+											"key": "sort",
+											"value": "1",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{USER}}"
+									}
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "image",
+											"type": "file",
+											"src": "/C:/Users/rifat/Downloads/Icon-1.png"
+										},
+										{
+											"key": "data",
+											"value": "{\n    \"name\": \"rif\"\n}",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								},
+								"url": "{{URL}}/user/update-profile"
+							},
+							"response": []
+						},
+						{
+							"name": "get all profile",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{USER}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"url": "{{URL}}/user/profile"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "verify-email",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"rifatmiah373@gmail.com\",\r\n    \"oneTimeCode\": 846153\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{URL}}/auth/verify-email"
+					},
+					"response": []
+				},
+				{
+					"name": "reset-password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NzM3ODY1YjBmMzgxNzQ1Y2Q1NDRlYyIsImVtYWlsIjoicmlmYXRtaWFoMzczQGdtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzUyMzk5MzE1LCJleHAiOjE3NTQ5OTEzMTV9.BZFWtJ74B9T-lJEXdcXf5dBPRiTBoEntksu0nSWhETo"
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"newPassword\": \"11111111\",\r\n    \"confirmPassword\": \"11111111\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{URL}}/auth/reset-password"
+					},
+					"response": []
+				},
+				{
+					"name": "forget-password",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"rifatmiah373@gmail.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{URL}}/auth/forgot-password"
+					},
+					"response": []
+				},
+				{
+					"name": "change-password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{USER}}"
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"currentPassword\": \"11111111\",\r\n    \"newPassword\": \"44444444\",\r\n    \"confirmPassword\": \"44444444\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{URL}}/auth/change-password"
+					},
+					"response": []
+				},
+				{
+					"name": "login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Save token to collection variable\", function () {\r",
+									"    const response = pm.response.json(); // Parse the response JSON\r",
+									"    const token = response.data?.accessToken; // Adjust this to match the token path in your response\r",
+									"    if (token) {\r",
+									"        pm.collectionVariables.set(\"USER\", token); // Save to collection scope\r",
+									"        console.log(\"Token saved in collection variable:\", token);\r",
+									"    } else {\r",
+									"        console.error(\"Token not found in the response\");\r",
+									"        pm.collectionVariables.unset(\"userToken\");\r",
+									"    }\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"admin@gmail.com\",\r\n    \"password\": \"12345678\"\r\n}\r\n\r\n\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{URL}}/auth/login"
+					},
+					"response": []
+				},
+				{
+					"name": "google-login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Save token to collection variable\", function () {\r",
+									"    const response = pm.response.json(); // Parse the response JSON\r",
+									"    const token = response.data?.accessToken; // Adjust this to match the token path in your response\r",
+									"    if (token) {\r",
+									"        pm.collectionVariables.set(\"USER\", token); // Save to collection scope\r",
+									"        console.log(\"Token saved in collection variable:\", token);\r",
+									"    } else {\r",
+									"        console.error(\"Token not found in the response\");\r",
+									"        pm.collectionVariables.unset(\"userToken\");\r",
+									"    }\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": ""
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"john.doe2d@example.com\",\r\n  \"name\": \"John Doe\",\r\n  \"image\": \"https://static.vecteezy.com/system/resources/previews/005/005/788/non_2x/user-icon-in-trendy-flat-style-isolated-on-grey-background-user-symbol-for-your-web-site-design-logo-app-ui-illustration-eps10-free-vector.jpg\",\r\n  \"uid\": \"google_123456789\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{URL}}/auth/google-login"
+					},
+					"response": []
+				},
+				{
+					"name": "facebook-login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Save token to collection variable\", function () {\r",
+									"    const response = pm.response.json(); // Parse the response JSON\r",
+									"    const token = response.data?.accessToken; // Adjust this to match the token path in your response\r",
+									"    if (token) {\r",
+									"        pm.collectionVariables.set(\"USER\", token); // Save to collection scope\r",
+									"        console.log(\"Token saved in collection variable:\", token);\r",
+									"    } else {\r",
+									"        console.error(\"Token not found in the response\");\r",
+									"        pm.collectionVariables.unset(\"userToken\");\r",
+									"    }\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": ""
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"token\":\"sdfsdfsdfdsf\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{URL}}/auth/facebook-login"
+					},
+					"response": []
+				},
+				{
+					"name": "resent-otp",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Save token to collection variable\", function () {\r",
+									"    const response = pm.response.json(); // Parse the response JSON\r",
+									"    const token = response.data?.accessToken; // Adjust this to match the token path in your response\r",
+									"    if (token) {\r",
+									"        pm.collectionVariables.set(\"USER\", token); // Save to collection scope\r",
+									"        console.log(\"Token saved in collection variable:\", token);\r",
+									"    } else {\r",
+									"        console.error(\"Token not found in the response\");\r",
+									"        pm.collectionVariables.unset(\"userToken\");\r",
+									"    }\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": ""
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"rifatfkhan5567790@gmail.com\"\r\n}\r\n\r\n\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{URL}}/auth/resend-otp"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "admin",
+			"item": [
+				{
+					"name": "setting",
+					"item": [
+						{
+							"name": "update",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{ADMIN}}"
+									}
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"description\": \"sdsfsdf\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "{{URL}}/setting/update/terms"
+							},
+							"response": []
+						},
+						{
+							"name": "get",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{ADMIN}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "{{URL}}/setting/get/terms"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "get all user",
+					"item": [
+						{
+							"name": "get all user",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{ADMIN}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{URL}}/user/get-all-users",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"user",
+										"get-all-users"
+									],
+									"query": [
+										{
+											"key": "sort",
+											"value": "1",
+											"disabled": true
+										},
+										{
+											"key": "limit",
+											"value": "2",
+											"disabled": true
+										},
+										{
+											"key": "searchTerm",
+											"value": "rifat",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get user details",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{ADMIN}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{URL}}/user/get-users/68a2ef314871270e8df8913b",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"user",
+										"get-users",
+										"68a2ef314871270e8df8913b"
+									],
+									"query": [
+										{
+											"key": "sort",
+											"value": "1",
+											"disabled": true
+										},
+										{
+											"key": "limit",
+											"value": "2",
+											"disabled": true
+										},
+										{
+											"key": "searchTerm",
+											"value": "rifat",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "category",
+					"item": [
+						{
+							"name": "add category",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{ADMIN}}"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "data",
+											"value": "{\n  \"name\": \"Electronddics\"\n}",
+											"type": "text"
+										},
+										{
+											"key": "image",
+											"type": "file",
+											"src": "/C:/Users/rifat/Downloads/img.jpg"
+										}
+									]
+								},
+								"url": "{{URL}}/category/create"
+							},
+							"response": []
+						},
+						{
+							"name": "update",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{ADMIN}}"
+									}
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "data",
+											"value": "{\n  \"name\": \"Electron\"\n}",
+											"type": "text"
+										},
+										{
+											"key": "image",
+											"type": "file",
+											"src": "/C:/Users/rifat/Downloads/Aug 16.jpg"
+										}
+									]
+								},
+								"url": "{{URL}}/category/update/68a2f80cdf1f41fbc82b66ba"
+							},
+							"response": []
+						},
+						{
+							"name": "get all category",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{ADMIN}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": []
+								},
+								"url": {
+									"raw": "{{URL}}/category/get-all",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"category",
+										"get-all"
+									],
+									"query": [
+										{
+											"key": "searchTerm",
+											"value": "Electronics",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get-details",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{ADMIN}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": []
+								},
+								"url": {
+									"raw": "{{URL}}/category/get-details/68a2ff005b7a0444beaa4f03",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"category",
+										"get-details",
+										"68a2ff005b7a0444beaa4f03"
+									],
+									"query": [
+										{
+											"key": "searchTerm",
+											"value": "Electronics",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "product",
+					"item": [
+						{
+							"name": "add product",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{ADMIN}}"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "data",
+											"value": "{\n    \"name\": \"dfddfdf\",\n    \"price\": \"300\",\n    \"category\": \"68a2ff005b7a0444beaa4f03\",\n    \"size\": \"XL\",\n    \"qrId\": \"dfdfdddffd\"\n}",
+											"type": "text"
+										},
+										{
+											"key": "image",
+											"type": "file",
+											"src": "/C:/Users/rifat/Downloads/Sep 22 -.jpg"
+										}
+									]
+								},
+								"url": "{{URL}}/product/create"
+							},
+							"response": []
+						},
+						{
+							"name": "update product",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{ADMIN}}"
+									}
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "data",
+											"value": "{\n  \"name\": \"Classi\",\n  \"price\": \"19.99\",\n  \"category\": \"68a2ff005b7a0444beaa4f03\",\n  \"size\": \"M\"\n}",
+											"type": "text"
+										},
+										{
+											"key": "image",
+											"type": "file",
+											"src": "/C:/Users/rifat/Downloads/hello.webp"
+										}
+									]
+								},
+								"url": "{{URL}}/product/update/68a410b9205a5b8d2c7fcb1d"
+							},
+							"response": []
+						},
+						{
+							"name": "get-all-products",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{ADMIN}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": []
+								},
+								"url": {
+									"raw": "{{URL}}/product/get-all-products-admin",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"product",
+										"get-all-products-admin"
+									],
+									"query": [
+										{
+											"key": "searchTerm",
+											"value": "Electronddics",
+											"disabled": true
+										},
+										{
+											"key": "name",
+											"value": "dfsfsdfsdfsdf",
+											"disabled": true
+										},
+										{
+											"key": "status",
+											"value": "deleted",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get-details",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{ADMIN}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": []
+								},
+								"url": "{{URL}}/product/get-details/68a410b9205a5b8d2c7fcb1d"
+							},
+							"response": []
+						},
+						{
+							"name": "delete",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{ADMIN}}"
+									}
+								},
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": []
+								},
+								"url": "{{URL}}/product/delete/68a410b9205a5b8d2c7fcb1d"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "dashboard statistics",
+					"item": [
+						{
+							"name": "get all data",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{ADMIN}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": "{{URL}}/dashboard/get-all-data"
+							},
+							"response": []
+						},
+						{
+							"name": "get-earning-chart-data",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{ADMIN}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": "{{URL}}/dashboard/get-earning-chart-data"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "order",
+					"item": [
+						{
+							"name": "accept order",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{ADMIN}}"
+									}
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "{{URL}}/order/accept-order/68a5a25627ef75b1cc29f860"
+							},
+							"response": []
+						},
+						{
+							"name": "get-all-order",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{ADMIN}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "{{URL}}/order/get-all-order"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "notification",
+					"item": [
+						{
+							"name": "get all notification",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{ADMIN}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": "{{URL}}/notification/admin"
+							},
+							"response": []
+						},
+						{
+							"name": "read notification",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{ADMIN}}"
+									}
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": "{{URL}}/notification/admin"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "assign-product",
+					"item": [
+						{
+							"name": "assign-product",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{ADMIN}}"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"productId\": \"68d79b3c187feadf86fd538d\",\r\n  \"userId\": \"691aa2a796358982e9801c25\"\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "{{URL}}/assign-product/assign"
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "user",
+			"item": [
+				{
+					"name": "category",
+					"item": [
+						{
+							"name": "get all category",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{ADMIN}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": []
+								},
+								"url": {
+									"raw": "{{URL}}/category/get-all",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"category",
+										"get-all"
+									],
+									"query": [
+										{
+											"key": "searchTerm",
+											"value": "Electronics",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get-details",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{ADMIN}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": []
+								},
+								"url": {
+									"raw": "{{URL}}/category/get-details/68a2ff005b7a0444beaa4f03",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"category",
+										"get-details",
+										"68a2ff005b7a0444beaa4f03"
+									],
+									"query": [
+										{
+											"key": "searchTerm",
+											"value": "Electronics",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "personalization",
+					"item": [
+						{
+							"name": "create personalization",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{USER}}"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"category\": \"68a2f80cdf1f41fbc82b66ba\",\r\n  \"email\": \"johndoe@example.com\",\r\n  \"name\": \"John Doe\",\r\n  \"birthday\": \"1995-06-15T00:00:00.000Z\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "{{URL}}/personalization/create"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "product",
+					"item": [
+						{
+							"name": "get-all-products",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{ADMIN}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": []
+								},
+								"url": {
+									"raw": "{{URL}}/product/get-all-products",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"product",
+										"get-all-products"
+									],
+									"query": [
+										{
+											"key": "searchTerm",
+											"value": "ddddddddd",
+											"disabled": true
+										},
+										{
+											"key": "name",
+											"value": "dfsfsdfsdfsdf",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get-details",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{ADMIN}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": []
+								},
+								"url": "{{URL}}/product/get-details/68a435a8e6975c326305446b"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "wishList",
+					"item": [
+						{
+							"name": "add wishList",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{USER}}"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "{{URL}}/wishlist/add-to-wishlist/68a43589e6975c3263054468"
+							},
+							"response": []
+						},
+						{
+							"name": "remove-from-wishlist",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{USER}}"
+									}
+								},
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "{{URL}}/wishlist/remove-from-wishlist/68a43589e6975c3263054468"
+							},
+							"response": []
+						},
+						{
+							"name": "get-all-wishlists",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{USER}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/wishlist/get-all-wishlists",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"wishlist",
+										"get-all-wishlists"
+									],
+									"query": [
+										{
+											"key": "searchTerm",
+											"value": "Classic2",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get-details-wishlist",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{USER}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/wishlist/get-details-wishlist/68a4371e4c9c1b5121f4e95e",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"wishlist",
+										"get-details-wishlist",
+										"68a4371e4c9c1b5121f4e95e"
+									],
+									"query": [
+										{
+											"key": "searchTerm",
+											"value": "Classic2",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "review",
+					"item": [
+						{
+							"name": "add review",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{USER}}"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"rating\": 5,\r\n  \"review\": \"This product is excellent! Highly recommend.\",\r\n  \"product\": \"68d76cd1e6bd66c20ba842b2\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "{{URL}}/review/create-review"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "order",
+					"item": [
+						{
+							"name": "create-order",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{USER}}"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"items\": [\r\n    {\r\n      \"productId\": \"68a43589e6975c3263054468\",\r\n      \"quantity\": 2,\r\n      \"price\": 1200\r\n    },\r\n    {\r\n      \"productId\": \"68a435a8e6975c326305446b\",\r\n      \"quantity\": 1,\r\n      \"price\": 750\r\n    }\r\n  ],\r\n  \"totalAmount\": 3150\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "{{URL}}/order/create-order"
+							},
+							"response": []
+						},
+						{
+							"name": "accept delivery",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{ADMIN}}"
+									}
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "{{URL}}/order/accept-order/68a5a25627ef75b1cc29f860"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "notification",
+					"item": [
+						{
+							"name": "get all notification",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{USER}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": "{{URL}}/notification/get-notification"
+							},
+							"response": []
+						},
+						{
+							"name": "read notification",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{USER}}"
+									}
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": "{{URL}}/notification/update-notification"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "setting",
+					"item": [
+						{
+							"name": "get",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{ADMIN}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "{{URL}}/setting/get/terms"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "assign-product",
+					"item": [
+						{
+							"name": "get-all-assign-product",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{USER}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/assign-product/get-all-assign-product",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"assign-product",
+										"get-all-assign-product"
+									],
+									"query": [
+										{
+											"key": "searchTerm",
+											"value": "155",
+											"disabled": true
+										},
+										{
+											"key": "categoryName",
+											"value": "ddddddddd",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get-all-assign-product-by-category",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{USER}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/assign-product/get-all-assign-product-by-category/68a409b6d0658ed95d74ae96",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"assign-product",
+										"get-all-assign-product-by-category",
+										"68a409b6d0658ed95d74ae96"
+									],
+									"query": [
+										{
+											"key": "searchTerm",
+											"value": "Classic T-Shirt 52",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "URL",
+			"value": "http://10.10.12.25:5008/api/v1"
+		},
+		{
+			"key": "USER",
+			"value": "{{vault:json-web-token}}"
+		},
+		{
+			"key": "ADMIN",
+			"value": "{{vault:json-web-token}}"
+		}
+	]
+}

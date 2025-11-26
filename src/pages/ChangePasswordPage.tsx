@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/form";
 import { useNavigate } from "react-router";
 import { ForgotPasswordModal } from "@/components/modals/ForgotPasswordModal";
+import { useChangePasswordMutation } from "@/redux/api/api";
 
 const changePasswordSchema = z
   .object({
@@ -35,6 +36,8 @@ export function ChangePasswordPage() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
+  const navigate = useNavigate();
+  const [changePassword, { isLoading }] = useChangePasswordMutation();
 
   const form = useForm<ChangePassword>({
     resolver: zodResolver(changePasswordSchema),
@@ -45,25 +48,23 @@ export function ChangePasswordPage() {
     },
   });
 
-  const navigate = useNavigate();
-
   const onSubmit = async (data: ChangePassword) => {
     try {
-      console.log("Submitting password change:", data);
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const res = await changePassword({
+        oldPassword: data.oldPassword,
+        newPassword: data.newPassword,
+      }).unwrap();
 
-      // Success toast using sonner
-      toast.success("Your password has been successfully updated.", {
+      toast.success(res?.message || "Your password has been successfully updated.", {
         description: "Password Updated",
       });
 
-      navigate("/settings");
-      // Reset the form after successful submission
       form.reset();
-    } catch (error) {
-      // Error toast using sonner
-      toast.error("Failed to update password. Please try again.", {
+      navigate("/settings");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      console.error("Change password error:", error);
+      toast.error(error?.data?.message || "Failed to update password. Please try again.", {
         description: "Error",
         duration: 5000,
       });
@@ -240,11 +241,9 @@ export function ChangePasswordPage() {
               <Button
                 type="submit"
                 className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-medium h-12 rounded-full"
-                disabled={form.formState.isSubmitting}
+                disabled={isLoading}
               >
-                {form.formState.isSubmitting
-                  ? "Updating..."
-                  : "Update password"}
+                {isLoading ? "Updating..." : "Update password"}
               </Button>
             </form>
           </Form>

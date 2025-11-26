@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // Use `useNavigate` for React Router
 import { ArrowLeft, User, Phone, Camera, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,11 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
+import { toast } from "sonner";
+import { useDispatch } from "react-redux";
+import { updateUser } from "@/redux/features/auth/authSlice";
+
+const baseUrl = "http://10.10.12.25:5008";
 
 // Define schema using Zod
 const formSchema = z.object({
@@ -25,23 +30,72 @@ type FormData = z.infer<typeof formSchema>;
 
 const EditPersonalInformationPage: React.FC = () => {
   const navigate = useNavigate(); // Use navigate for routing in React
+  const dispatch = useDispatch();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
-  // Mock user data - replace with actual user data from your state management
+  // User data state
   const [userData, setUserData] = useState({
-    name: "Shoron Ahmed",
-    email: "shoron@gmail.com",
-    phone: "+1 555 000 0000",
-    profileImage: "/placeholder.svg?height=80&width=80", // Make sure your image is in the `public` folder
+    name: "",
+    email: "",
+    phone: "",
+    profileImage: "",
   });
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: userData.name,
-      phone: userData.phone,
+      name: "",
+      phone: "",
     },
   });
+
+  useEffect(() => {
+    fetchUserProfile();
+  }, []);
+
+  const fetchUserProfile = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${baseUrl}/api/v1/user/profile`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      const result = await response.json();
+      console.log("User profile response:", result);
+
+      if (response.ok && result.success && result.data) {
+        const imageUrl = result.data.image || result.data.profileImage || "";
+        const fullImageUrl = imageUrl && !imageUrl.startsWith('http') 
+          ? `${baseUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}` 
+          : imageUrl;
+        
+        const data = {
+          name: result.data.name || "",
+          email: result.data.email || "",
+          phone: result.data.phone || "",
+          profileImage: fullImageUrl,
+        };
+        setUserData(data);
+        form.reset({
+          name: data.name,
+          phone: data.phone,
+        });
+      } else {
+        toast.error(result.message || "Failed to load profile");
+      }
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      toast.error("Failed to load profile");
+    } finally {
+      setLoading(false);
+    }
+  };
   const handleBack = () => {
     if (window.history.length > 1) {
       navigate(-1);
@@ -57,6 +111,7 @@ const EditPersonalInformationPage: React.FC = () => {
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      setImageFile(file);
       const reader = new FileReader();
       reader.onload = (e) => {
         setUserData((prev) => ({
@@ -68,15 +123,56 @@ const EditPersonalInformationPage: React.FC = () => {
     }
   };
 
-  const onSubmit = (data: FormData) => {
-    // Handle form submission - update user data
-    console.log("Updated user data:", { ...userData, ...data });
+  const onSubmit = async (data: FormData) => {
+    setUpdating(true);
+    try {
+      const formData = new FormData();
+      formData.append("name", data.name);
+      formData.append("phone", data.phone);
+      
+      if (imageFile) {
+        formData.append("image", imageFile);
+      }
 
-    // Update local state
-    setUserData((prev) => ({ ...prev, ...data }));
+      const response = await fetch(`${baseUrl}/api/v1/user/update-profile`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: formData,
+      });
 
-    // Navigate back to the personal information view page
-    navigate("/settings/personal-information");
+      const result = await response.json();
+      console.log("Update response:", result);
+
+      if (response.ok && result.success) {
+        // Update Redux state with new user data
+        const updatedData: Record<string, string> = {
+          name: data.name,
+          phone: data.phone,
+        };
+        
+        if (result.data?.image) {
+          const imageUrl = result.data.image;
+          const fullImageUrl = imageUrl && !imageUrl.startsWith('http') 
+            ? `${baseUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}` 
+            : imageUrl;
+          updatedData.image = fullImageUrl;
+        }
+        
+        dispatch(updateUser(updatedData));
+        
+        toast.success("Profile updated successfully!");
+        navigate("/settings/personal-information");
+      } else {
+        toast.error(result.message || "Failed to update profile");
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error("Failed to update profile");
+    } finally {
+      setUpdating(false);
+    }
   };
 
   return (
@@ -110,9 +206,10 @@ const EditPersonalInformationPage: React.FC = () => {
                         <AvatarImage
                           src={userData.profileImage || "/placeholder.svg"}
                           alt={userData.name}
+                          className="object-cover"
                         />
                         <AvatarFallback className="text-lg">
-                          {userData.name.charAt(0).toUpperCase()}
+                          {userData.name ? userData.name.charAt(0).toUpperCase() : "U"}
                         </AvatarFallback>
                       </Avatar>
                       <button
@@ -183,8 +280,9 @@ const EditPersonalInformationPage: React.FC = () => {
                     <Button
                       type="submit"
                       className="bg-yellow-400 hover:bg-yellow-500 text-black font-medium"
+                      disabled={loading || updating}
                     >
-                      Save Change
+                      {updating ? "Saving..." : "Save Change"}
                       <Save className="ml-2 h-4 w-4" />
                     </Button>
                   </div>

@@ -1,6 +1,6 @@
 import type React from "react";
-import { useState } from "react";
-import { Upload, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Upload, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,36 +17,51 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
-interface AddProductModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSave: (product: ProductFormData) => void;
-}
-
-interface ProductFormData {
-  category: string;
-  name: string;
-  description: string;
-  price: string;
-  image?: File;
-}
+import type { ProductFormData, AddProductModalProps } from "@/types";
 
 export function AddProductModal({
   open,
   onOpenChange,
   onSave,
+  editMode = false,
+  isLoading = false,
+  initialData,
 }: AddProductModalProps) {
   const [formData, setFormData] = useState<ProductFormData>({
-    category: "",
-    name: "",
-    description: "",
-    price: "",
+    category: initialData?.category || "",
+    name: initialData?.name || "",
+    description: initialData?.description || "",
+    price: initialData?.price?.toString() || "",
   });
   const [dragActive, setDragActive] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(initialData?.image || null);
 
   const categories = ["Hat", "Mug", "Keychains", "Bag"];
+
+  // Update form data and existing image when initialData changes
+  useEffect(() => {
+    if (editMode && initialData) {
+      setFormData({
+        category: initialData.category || "",
+        name: initialData.name || "",
+        description: initialData.description || "",
+        price: initialData.price?.toString() || "",
+      });
+      setExistingImageUrl(initialData.image || null);
+      setSelectedImage(null); // Clear any previously selected new image
+    } else if (!editMode) {
+      // Reset form when switching to add mode
+      setFormData({
+        category: "",
+        name: "",
+        description: "",
+        price: "",
+      });
+      setExistingImageUrl(null);
+      setSelectedImage(null);
+    }
+  }, [editMode, initialData]);
 
   const handleInputChange = (field: keyof ProductFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -87,15 +102,18 @@ export function AddProductModal({
   const handleSave = () => {
     if (formData.category && formData.name && formData.price) {
       console.log("formData:", formData);
-      onSave(formData);
-      // Reset form
-      setFormData({
-        category: "",
-        name: "",
-        description: "",
-        price: "",
-      });
-      setSelectedImage(null);
+      onSave(formData, editMode ? initialData?.id : undefined);
+      // Reset form if not in edit mode
+      if (!editMode) {
+        setFormData({
+          category: "",
+          name: "",
+          description: "",
+          price: "",
+        });
+        setSelectedImage(null);
+        setExistingImageUrl(null);
+      }
       onOpenChange(false);
     }
   };
@@ -116,7 +134,7 @@ export function AddProductModal({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold">
-            Add Product
+            {editMode ? "Edit Product" : "Add Product"}
           </DialogTitle>
           <Button
             variant="ghost"
@@ -178,65 +196,126 @@ export function AddProductModal({
 
           {/* Image Upload */}
           <div className="space-y-2">
-            <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                dragActive
-                  ? "border-blue-400 bg-blue-50"
-                  : "border-gray-300 hover:border-gray-400"
-              }`}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-            >
-              <div className="flex flex-col items-center space-y-3">
-                <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center">
-                  <Upload className="w-6 h-6 text-teal-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900">
-                    Upload Image
-                  </h3>
-                  {selectedImage ? (
-                    <p className="text-sm text-gray-600 mt-1">
-                      {selectedImage.name}
+            {/* Show existing image or selected image preview - only when image exists */}
+            {(selectedImage || existingImageUrl) && (
+              <div className="relative mb-4 rounded-xl overflow-hidden shadow-lg border-2 border-gray-200">
+                <img
+                  src={selectedImage ? URL.createObjectURL(selectedImage) : existingImageUrl || ""}
+                  alt="Product preview"
+                  className="w-full h-64 object-contain bg-gray-50"
+                />
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="absolute top-3 right-3 h-9 w-9 p-0 rounded-full shadow-lg hover:scale-110 transition-transform"
+                  onClick={() => {
+                    setSelectedImage(null);
+                    if (!editMode) {
+                      setExistingImageUrl(null);
+                    }
+                  }}
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+                {selectedImage && (
+                  <div className="absolute bottom-3 left-3 bg-gradient-to-r from-green-500 to-green-600 text-white text-sm px-4 py-2 rounded-full shadow-md flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    New image selected
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Upload area - always show but simplified when image exists */}
+            {!(selectedImage || existingImageUrl) ? (
+              <div
+                className={`border-2 border-dashed rounded-xl p-10 text-center transition-all ${
+                  dragActive
+                    ? "border-blue-500 bg-blue-50 scale-105"
+                    : "border-gray-300 hover:border-blue-400 hover:bg-gray-50"
+                }`}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+              >
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="w-16 h-16 bg-gradient-to-br from-teal-100 to-blue-100 rounded-full flex items-center justify-center shadow-md">
+                    <Upload className="w-8 h-8 text-teal-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      Upload Product Image
+                    </h3>
+                    <label htmlFor="file-upload" className="cursor-pointer">
+                      <span className="text-base text-blue-600 hover:text-blue-700 font-medium underline">
+                        Browse files
+                      </span>
+                      <span className="text-gray-600"> or drag and drop</span>
+                      <input
+                        id="file-upload"
+                        type="file"
+                        className="hidden"
+                        accept="image/jpeg,image/png,image/jpg,image/webp"
+                        onChange={handleFileSelect}
+                      />
+                    </label>
+                    <p className="text-sm text-gray-500 mt-3">
+                      Supported: JPEG, PNG, JPG, WebP
                     </p>
-                  ) : (
-                    <>
-                      <label htmlFor="file-upload" className="cursor-pointer">
-                        <span className="text-sm text-gray-600 underline">
-                          Select File
-                        </span>
-                        <input
-                          id="file-upload"
-                          type="file"
-                          className="hidden"
-                          accept="image/jpeg,image/png,image/jpg"
-                          onChange={handleFileSelect}
-                        />
-                      </label>
-                      <p className="text-xs text-gray-500 mt-2">
-                        Supported formats: JPEG, PNG, JPG (mobile phone photos)
-                      </p>
-                    </>
-                  )}
+                    <p className="text-xs text-gray-400 mt-1">
+                      Maximum file size: 5MB
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div
+                className="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:border-blue-400 hover:bg-gray-50 transition-all cursor-pointer"
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+              >
+                <label htmlFor="file-upload-change" className="cursor-pointer flex items-center justify-center gap-2">
+                  <Upload className="w-5 h-5 text-blue-600" />
+                  <span className="text-base text-blue-600 hover:text-blue-700 font-medium">
+                    {selectedImage ? "Change Image" : "Replace Image"}
+                  </span>
+                  <input
+                    id="file-upload-change"
+                    type="file"
+                    className="hidden"
+                    accept="image/jpeg,image/png,image/jpg,image/webp"
+                    onChange={handleFileSelect}
+                  />
+                </label>
+              </div>
+            )}
           </div>
 
           {/* Save Button */}
           <Button
             onClick={handleSave}
-            className="w-full rounded-full bg-yellow-400 hover:bg-yellow-500 text-black font-medium"
+            className="w-full rounded-full bg-yellow-400 hover:bg-yellow-500 text-black font-medium h-12"
             disabled={
+              isLoading ||
               !formData.category ||
               !formData.name ||
               !formData.price ||
-              !selectedImage
+              (!editMode && !selectedImage && !existingImageUrl)
             }
           >
-            Save
+            {isLoading ? (
+              <>
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                {editMode ? "Updating..." : "Saving..."}
+              </>
+            ) : (
+              editMode ? "Update" : "Save"
+            )}
           </Button>
         </div>
       </DialogContent>

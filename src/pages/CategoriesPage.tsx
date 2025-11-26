@@ -1,148 +1,132 @@
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import ProductCard from "../components/cards/ProductCard";
 import { useState } from "react";
 import { Button } from "../components/ui/button";
-import { AddProductModal } from "../components/modals/AddProductModal";
-import img from "../assets/hat.png";
 import { Pagination } from "@/components/pagination/Pagination";
+import { useGetAllCategoriesQuery, useGetCategoryDetailsQuery, useCreateCategoryMutation, useUpdateCategoryMutation } from "@/redux/api/api";
+import type { Category } from "@/types";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
-export interface TProduct {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-}
-
-const productData: TProduct[] = [
-  {
-    id: "1",
-    name: "Classic Denim Jacket with Faux Shearling Lining",
-    price: 89.99,
-    image: img,
-  },
-  {
-    id: "2",
-    name: "Minimalist Leather Backpack for Daily Commute",
-    price: 125.0,
-    image: img,
-  },
-  {
-    id: "3",
-    name: "Vintage-Inspired High-Top Sneakers",
-    price: 75.5,
-    image: img,
-  },
-  {
-    id: "4",
-    name: "Slim-Fit Chinos in Olive Green",
-    price: 59.99,
-    image: img,
-  },
-  {
-    id: "5",
-    name: "Handmade Ceramic Mug Set",
-    price: 32.0,
-    image: img,
-  },
-  {
-    id: "6",
-    name: "Noise-Cancelling Wireless Headphones",
-    price: 199.99,
-    image: img,
-  },
-  {
-    id: "7",
-    name: "Stainless Steel Smartwatch with Health Tracking",
-    price: 249.0,
-    image: img,
-  },
-  {
-    id: "8",
-    name: "Portable Bluetooth Speaker with Long Battery Life",
-    price: 65.75,
-    image: img,
-  },
-  {
-    id: "9",
-    name: "Organic Cotton T-Shirt, 3-Pack",
-    price: 45.0,
-    image: img,
-  },
-  {
-    id: "10",
-    name: "Glass Water Bottle with Protective Silicone Sleeve",
-    price: 22.5,
-    image: img,
-  },
-  {
-    id: "11",
-    name: "Comfortable Memory Foam Pillow",
-    price: 39.99,
-    image: img,
-  },
-  {
-    id: "12",
-    name: "Stylish Sunglasses with Polarized Lenses",
-    price: 55.0,
-    image: img,
-  },
-  {
-    id: "13",
-    name: "Compact Digital Camera with HD Video Recording",
-    price: 299.99,
-    image: img,
-  },
-  {
-    id: "14",
-    name: "Eco-Friendly Reusable Grocery Bags, Set of 5",
-    price: 18.0,
-    image: img,
-  },
-  {
-    id: "15",
-    name: "Insulated Stainless Steel Coffee Thermos",
-    price: 29.99,
-    image: img,
-  },
-  {
-    id: "16",
-    name: "Water-Resistant Running Shoes",
-    price: 89.5,
-    image: img,
-  },
-  {
-    id: "17",
-    name: "Smartphone with 128GB Storage",
-    price: 349.0,
-    image: img,
-  },
-  {
-    id: "18",
-    name: "Electric Toothbrush with Smart Timer",
-    price: 49.99,
-    image: img,
-  },
-  {
-    id: "19",
-    name: "Luxury Scented Candle in Glass Jar",
-    price: 25.0,
-    image: img,
-  },
-];
+const baseUrl = "http://10.10.12.25:5008";
 
 const CategoriesPage = () => {
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [editCategoryId, setEditCategoryId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10; // Show 8 products per page
+  const [categoryName, setCategoryName] = useState("");
+  const [categoryImage, setCategoryImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
+  const itemsPerPage = 10;
 
-  const totalPages = Math.ceil(productData.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentProducts = productData.slice(startIndex, endIndex);
+  // Fetch categories from API
+  const { data: categoriesData, isLoading } = useGetAllCategoriesQuery({
+    page: currentPage,
+    limit: itemsPerPage,
+  });
 
-  const handleSaveProduct = (productData: any) => {
-    console.log("New product:", productData);
-    // Implement your API call to save the product here
+  // Fetch category details when a category is selected
+  const { data: categoryDetails, isLoading: isLoadingDetails } = useGetCategoryDetailsQuery(
+    selectedCategoryId!,
+    { skip: !selectedCategoryId }
+  );
+
+  // Create category mutation
+  const [createCategory, { isLoading: isCreating }] = useCreateCategoryMutation();
+  
+  // Update category mutation
+  const [updateCategory, { isLoading: isUpdating }] = useUpdateCategoryMutation();
+
+  const handleEditClick = (category: Category) => {
+    setEditCategoryId(category._id || category.id || null);
+    setCategoryName(category.name);
+    setExistingImageUrl(category.image.startsWith('http') ? category.image : `${baseUrl}${category.image}`);
+    setImagePreview(null);
+    setCategoryImage(null);
+    setShowEditModal(true);
+  };
+
+  // Extract categories from API response
+  let categories: Category[] = [];
+  if (categoriesData?.data?.result && Array.isArray(categoriesData.data.result)) {
+    categories = categoriesData.data.result.map((category: Category) => ({
+      ...category,
+      id: category._id || category.id,
+    }));
+  }
+
+  const totalCount = categoriesData?.data?.meta?.total || 0;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setCategoryImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCreateCategory = async () => {
+    if (!categoryName.trim()) {
+      toast.error("Category name is required");
+      return;
+    }
+    if (!categoryImage) {
+      toast.error("Category image is required");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('name', categoryName);
+      formData.append('image', categoryImage);
+
+      await createCategory(formData).unwrap();
+      toast.success("Category created successfully");
+      setShowAddModal(false);
+      setCategoryName("");
+      setCategoryImage(null);
+      setImagePreview(null);
+    } catch (error) {
+      toast.error("Failed to create category");
+      console.error('Create category error:', error);
+    }
+  };
+
+  const handleUpdateCategory = async () => {
+    if (!categoryName.trim()) {
+      toast.error("Category name is required");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('name', categoryName);
+      if (categoryImage) {
+        formData.append('image', categoryImage);
+      }
+
+      await updateCategory({ id: editCategoryId, data: formData }).unwrap();
+      toast.success("Category updated successfully");
+      setShowEditModal(false);
+      setCategoryName("");
+      setCategoryImage(null);
+      setImagePreview(null);
+      setExistingImageUrl(null);
+      setEditCategoryId(null);
+    } catch (error) {
+      toast.error("Failed to update category");
+      console.error('Update category error:', error);
+    }
   };
 
   const handlePageChange = (page: number) => {
@@ -168,26 +152,36 @@ const CategoriesPage = () => {
             onClick={() => setShowAddModal(true)}
             className="bg-[#FFD700] text-[#003366] hover:bg-amber-400 rounded-full"
           >
-            Add Product <Plus className="w-4 h-4" />
+            Add Category <Plus className="w-4 h-4" />
           </Button>
         </div>
       </div>
-      <div
-        className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 `}
-      >
-        {currentProducts.map((product) => (
-          <ProductCard
-            key={product.id}
-            id={product.id}
-            name={product.name}
-            price={product.price}
-            image={product.image}
-            onClick={() => console.log(`Clicked on product ${product.id}`)}
-          />
-        ))}
-      </div>
 
-      {totalPages > 1 && (
+      {isLoading ? (
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        </div>
+      ) : categories.length === 0 ? (
+        <div className="flex items-center justify-center h-64">
+          <p className="text-gray-400">No categories found</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {categories.map((category) => (
+            <ProductCard
+              key={category.id}
+              id={category.id || category._id}
+              name={category.name}
+              price={0}
+              image={category.image.startsWith('http') ? category.image : `${baseUrl}${category.image}`}
+              onClick={() => setSelectedCategoryId(category.id || category._id)}
+              onEdit={() => handleEditClick(category)}
+            />
+          ))}
+        </div>
+      )}
+
+      {!isLoading && totalPages > 1 && (
         <div className="mt-8 flex justify-center">
           <Pagination
             currentPage={currentPage}
@@ -197,12 +191,197 @@ const CategoriesPage = () => {
         </div>
       )}
 
-      {/* AddProductModal component */}
-      <AddProductModal
-        open={showAddModal}
-        onOpenChange={setShowAddModal}
-        onSave={handleSaveProduct}
-      />
+      {/* Add Category Modal */}
+      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add New Category</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="categoryName">Category Name</Label>
+              <Input
+                id="categoryName"
+                placeholder="Enter category name"
+                value={categoryName}
+                onChange={(e) => setCategoryName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="categoryImage">Category Image</Label>
+              <Input
+                id="categoryImage"
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+              />
+              {imagePreview && (
+                <div className="mt-2 aspect-square w-32 bg-gray-50 rounded-lg overflow-hidden">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowAddModal(false);
+                  setCategoryName("");
+                  setCategoryImage(null);
+                  setImagePreview(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCreateCategory}
+                disabled={isCreating}
+                className="bg-[#FFD700] text-[#003366] hover:bg-amber-400"
+              >
+                {isCreating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  "Create Category"
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Category Modal */}
+      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Category</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="editCategoryName">Category Name</Label>
+              <Input
+                id="editCategoryName"
+                placeholder="Enter category name"
+                value={categoryName}
+                onChange={(e) => setCategoryName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="editCategoryImage">Category Image (optional - leave empty to keep current)</Label>
+              <Input
+                id="editCategoryImage"
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+              />
+              {(imagePreview || existingImageUrl) && (
+                <div className="mt-2 aspect-square w-32 bg-gray-50 rounded-lg overflow-hidden">
+                  <img
+                    src={imagePreview || existingImageUrl || ""}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowEditModal(false);
+                  setCategoryName("");
+                  setCategoryImage(null);
+                  setImagePreview(null);
+                  setExistingImageUrl(null);
+                  setEditCategoryId(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleUpdateCategory}
+                disabled={isUpdating}
+                className="bg-[#FFD700] text-[#003366] hover:bg-amber-400"
+              >
+                {isUpdating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  "Update Category"
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Category Details Modal */}
+      <Dialog open={!!selectedCategoryId} onOpenChange={(open) => !open && setSelectedCategoryId(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Category Details</DialogTitle>
+          </DialogHeader>
+          {isLoadingDetails ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+            </div>
+          ) : categoryDetails?.data ? (
+            <div className="space-y-4">
+              <div className="aspect-square w-full bg-gray-50 rounded-lg overflow-hidden">
+                <img
+                  src={categoryDetails.data.image?.startsWith('http') ? categoryDetails.data.image : `${baseUrl}${categoryDetails.data.image}`}
+                  alt={categoryDetails.data.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="space-y-2">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Category Name</p>
+                  <p className="text-base font-semibold text-gray-900">{categoryDetails.data.name}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Category ID</p>
+                  <p className="text-sm text-gray-900 font-mono">{categoryDetails.data._id}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Created At</p>
+                  <p className="text-base text-gray-900">
+                    {new Date(categoryDetails.data.createdAt).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Updated At</p>
+                  <p className="text-base text-gray-900">
+                    {new Date(categoryDetails.data.updatedAt).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="text-center text-gray-400 py-8">No details available</p>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

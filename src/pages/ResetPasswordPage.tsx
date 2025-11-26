@@ -14,8 +14,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import signinImage from "@/assets/signin.png";
+import { useResetPasswordMutation } from "@/redux/api/api";
 
 const resetPasswordSchema = z
   .object({
@@ -36,6 +37,9 @@ export function ResetPasswordPage() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const emailFromState = location.state?.email || "";
+  const [resetPassword, { isLoading }] = useResetPasswordMutation();
 
   const form = useForm<ResetPasswordForm>({
     resolver: zodResolver(resetPasswordSchema),
@@ -44,24 +48,31 @@ export function ResetPasswordPage() {
       confirmPassword: "",
     },
   });
-
   const onSubmit = async (data: ResetPasswordForm) => {
     try {
-      console.log("Resetting password for:", data);
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      toast.success("Password Reset Successful", {
+      console.log("Sending reset password request:", {
+        email: emailFromState,
+        newPassword: data.newPassword,
+      });
+      
+      const res = await resetPassword({
+        email: emailFromState,
+        newPassword: data.newPassword,
+      }).unwrap();
+      
+      console.log("Reset password response:", res);
+      
+      toast.success(res?.message || "Password Reset Successful", {
         description:
           "Your password has been successfully reset. You can now login with your new password.",
       });
 
       form.reset();
-      navigate("/"); // Redirect to sign-in page after successful reset
-    } catch (error) {
-      toast.error("Failed to reset password. Please try again.", {
-        description: "Failed to reset password. Please try again.",
-      });
+      navigate("/");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      console.error("Reset password error:", error);
+      toast.error(error?.data?.message || "Failed to reset password. Please try again.");
     }
   };
 
@@ -196,11 +207,9 @@ export function ResetPasswordPage() {
               <Button
                 type="submit"
                 className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-medium h-12 rounded-full"
-                disabled={form.formState.isSubmitting}
+                disabled={isLoading}
               >
-                {form.formState.isSubmitting
-                  ? "Resetting..."
-                  : "Reset Password"}
+                {isLoading ? "Resetting..." : "Reset Password"}
               </Button>
             </form>
           </Form>

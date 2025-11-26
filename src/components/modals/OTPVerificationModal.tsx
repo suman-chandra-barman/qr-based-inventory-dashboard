@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { ArrowLeft } from "lucide-react"
@@ -113,7 +114,9 @@ export function OTPVerificationModal({ open, onOpenChange, email }: OTPVerificat
               {otp.map((digit, index) => (
                 <Input
                   key={index}
-                  ref={(el) => (inputRefs.current[index] = el)}
+                  ref={(el) => {
+                    inputRefs.current[index] = el;
+                  }}
                   type="text"
                   inputMode="numeric"
                   maxLength={1}
