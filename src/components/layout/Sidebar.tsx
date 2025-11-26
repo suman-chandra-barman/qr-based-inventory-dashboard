@@ -1,4 +1,3 @@
-
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,19 +13,10 @@ import {
 } from "lucide-react";
 import logo from "../../assets/logo.png";
 import { useNavigate } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store";
-import { logout } from "@/redux/features/auth/authSlice";
 import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { toast } from "sonner";
+import LogoutModal from "@/components/modals/LogoutModal";
 
 interface SidebarProps {
   className?: string;
@@ -86,16 +76,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   setIsCollapsed,
 }) => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
-
-  const handleLogoutConfirm = () => {
-    dispatch(logout());
-    setIsLogoutModalOpen(false);
-    toast.success("Logged out successfully");
-    navigate("/signin");
-  };
 
   const handleLogin = () => {
     navigate("/signin");
@@ -196,8 +178,8 @@ const Sidebar: React.FC<SidebarProps> = ({
       {/* User Profile */}
       <div className="p-4 border-t border-border text-red-400">
         {isAuthenticated ? (
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="w-full text-red-400 hover:text-red-500 hover:bg-red-50"
             onClick={() => setIsLogoutModalOpen(true)}
           >
@@ -205,8 +187,8 @@ const Sidebar: React.FC<SidebarProps> = ({
             {!isCollapsed && <span>Log out</span>}
           </Button>
         ) : (
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50"
             onClick={handleLogin}
           >
@@ -217,34 +199,10 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Logout Confirmation Modal */}
-      <Dialog open={isLogoutModalOpen} onOpenChange={setIsLogoutModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">Confirm Logout</DialogTitle>
-            <DialogDescription className="text-gray-600 mt-2">
-              Are you sure you want to logout? You will need to login again to access your account.
-            </DialogDescription>
-          </DialogHeader>
-       <DialogFooter className="flex gap-4 px-2">
-  <Button
-    variant="outline"
-    onClick={() => setIsLogoutModalOpen(false)}
-    className="w-full sm:w-auto"
-  >
-    Cancel
-  </Button>
-
-  <Button
-    variant="destructive"
-    onClick={handleLogoutConfirm}
-    className="w-full sm:w-auto bg-red-500 hover:bg-red-600"
-  >
-    Yes, Logout
-  </Button>
-</DialogFooter>
-
-        </DialogContent>
-      </Dialog>
+      <LogoutModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+      />
     </div>
   );
 };
