@@ -14,7 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { toast } from "sonner";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import signinImage from "@/assets/signin.png";
 import { useResetPasswordMutation } from "@/redux/api/api";
 
@@ -37,8 +37,6 @@ export function ResetPasswordPage() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
-  const emailFromState = location.state?.email || "";
   const [resetPassword, { isLoading }] = useResetPasswordMutation();
 
   const form = useForm<ResetPasswordForm>({
@@ -50,17 +48,10 @@ export function ResetPasswordPage() {
   });
   const onSubmit = async (data: ResetPasswordForm) => {
     try {
-      console.log("Sending reset password request:", {
-        email: emailFromState,
-        newPassword: data.newPassword,
-      });
-      
       const res = await resetPassword({
-        email: emailFromState,
+        confirmPassword: data.confirmPassword,
         newPassword: data.newPassword,
       }).unwrap();
-      
-      console.log("Reset password response:", res);
       
       toast.success(res?.message || "Password Reset Successful", {
         description:

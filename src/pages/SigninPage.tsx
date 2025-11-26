@@ -55,17 +55,19 @@ export default function SignInPage() {
         email: data.email,
         password: data.password,
       }).unwrap();
-      
+
       console.log("Login response:", res);
-      
+
       // Extract token - check if it's accessToken or token
       const token = res.data?.accessToken || res.data?.token;
-      
+      const refreshToken = res.data?.refreshToken;
+
       // Save user & token in Redux
       dispatch(
         setUser({
           user: res.data.user,
           token: token,
+          refreshToken: refreshToken,
         })
       );
 
@@ -74,7 +76,7 @@ export default function SignInPage() {
       form.reset();
 
       navigate("/dashboard");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to sign in.");
     }
@@ -106,12 +108,14 @@ export default function SignInPage() {
         <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl shadow-lg p-8">
             <div className="flex items-center mb-8">
-             
               <h1 className="text-2xl font-semibold text-gray-900">Sign In</h1>
             </div>
 
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6"
+              >
                 {/* Email */}
                 <FormField
                   control={form.control}
@@ -169,27 +173,8 @@ export default function SignInPage() {
                   )}
                 />
 
-                {/* Remember & Forgot */}
-                <div className="flex items-center justify-between">
-                  <FormField
-                    control={form.control}
-                    name="rememberMe"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center space-x-2">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            className="h-4 w-4"
-                          />
-                        </FormControl>
-                        <label className="text-sm text-gray-600">
-                          Remember me
-                        </label>
-                      </FormItem>
-                    )}
-                  />
-
+                {/* Forgot */}
+                <div>
                   <Link to="/forgot-password">
                     <Button
                       type="button"

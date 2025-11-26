@@ -3,8 +3,10 @@ import { useState, useRef, useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
+import { useDispatch } from "react-redux";
 import signinImage from "@/assets/signin.png";
 import { useVerifyEmailMutation } from "@/redux/api/api";
+import { setUser } from "@/redux/features/auth/authSlice";
 
 interface OTPVerificationPageProps {
   email?: string;
@@ -23,6 +25,7 @@ const OTPVerificationPage: React.FC<OTPVerificationPageProps> = ({
   const [resendOtpPassword, setResendOtpPassword] = useState<number>(0);
   const inputRefs = useRef<(HTMLInputElement | null)[]>(Array(6).fill(null));
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [verifyEmail] = useVerifyEmailMutation();
 
   // Initialize refs on mount
@@ -123,13 +126,24 @@ const OTPVerificationPage: React.FC<OTPVerificationPageProps> = ({
       return;
     }
 
-// Verify OTP API call
+    // Verify OTP API call
     try {
       setIsVerifying(true);
       const res = await verifyEmail({
         email: emailFromState,
         oneTimeCode: Number(otpString),
       }).unwrap();
+
+      // Store tokens and user data in Redux
+      if (res?.data?.accessToken && res?.data?.user) {
+        dispatch(
+          setUser({
+            token: res.data.accessToken,
+            refreshToken: res.data.refreshToken,
+            user: res.data.user,
+          })
+        );
+      }
 
       toast.success(res?.message || "OTP Verified Successfully", {
         description: "You can now reset your password.",
@@ -140,7 +154,7 @@ const OTPVerificationPage: React.FC<OTPVerificationPageProps> = ({
       } else {
         navigate("/reset-password", { state: { email: emailFromState } });
       }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Verification error:", error);
       toast.error(error?.data?.message || "Invalid OTP", {
@@ -164,7 +178,6 @@ const OTPVerificationPage: React.FC<OTPVerificationPageProps> = ({
         description: `New verification code sent to ${emailFromState}`,
       });
 
-     
       setResendOtpPassword(30);
 
       // Clear current OTP
@@ -182,7 +195,7 @@ const OTPVerificationPage: React.FC<OTPVerificationPageProps> = ({
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center p-4">
-         {/* Left side - Illustration */}
+      {/* Left side - Illustration */}
       <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12">
         <div>
           <div className="flex items-center justify-center">
@@ -207,7 +220,7 @@ const OTPVerificationPage: React.FC<OTPVerificationPageProps> = ({
           </div>
 
           <p className="text-gray-600 mb-6">
-            Please enter the OTP we have sent you in your email {" "}
+            Please enter the OTP we have sent you in your email{" "}
             <span className="font-medium">{emailFromState}</span>
           </p>
 
