@@ -4,7 +4,7 @@ import type { RootState } from "../store";
 export const baseApi = createApi({
   reducerPath: "baseApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_API_BASE_URL as string,
+    baseUrl: (import.meta.env.VITE_API_BASE_URL as string) + "/api/v1",
     prepareHeaders: (headers, { getState }) => {
       const token = (getState() as RootState).auth.token;
       if (token) {
@@ -13,7 +13,7 @@ export const baseApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["inventory"],
+  tagTypes: ["inventory", "notifications"],
   endpoints: (builder) => ({
     //user registration API
     getUserRegister: builder.query({
@@ -130,10 +130,19 @@ export const baseApi = createApi({
     //get admin notifications API
     getAdminNotifications: builder.query({
       query: () => ({
-        url: "/notification/admin",
+        url: `/notification/admin`,
         method: "GET",
       }),
-      providesTags: ["inventory"],
+      providesTags: ["notifications"],
+    }),
+
+    //mark notification as read API
+    markNotificationAsRead: builder.mutation({
+      query: (id) => ({
+        url: `/notification/admin${id ? `/${id}` : ""}`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["notifications"],
     }),
 
     ///----------------- Category Related APIs -----------------///
@@ -229,6 +238,7 @@ export const {
   useDeleteProductMutation,
   useUpdateProductMutation,
   useGetAdminNotificationsQuery,
+  useMarkNotificationAsReadMutation,
   useGetAllCategoriesQuery,
   useGetCategoryDetailsQuery,
   useCreateCategoryMutation,

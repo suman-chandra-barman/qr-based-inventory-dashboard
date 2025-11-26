@@ -130,3 +130,28 @@ export interface AssignedCustomer {
   address?: string;
   productId: string;
 }
+
+export interface Notification {
+  _id: string;
+  id?: string;
+  text: string;
+  message?: string;
+  type?: string;
+  read: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NotificationResponse {
+  success: boolean;
+  message: string;
+  data: {
+    result: Notification[];
+    meta: {
+      total: number;
+      page: number;
+      limit: number;
+      unread?: number;
+    };
+  };
+}
