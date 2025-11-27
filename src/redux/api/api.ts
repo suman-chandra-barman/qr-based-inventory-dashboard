@@ -233,6 +233,15 @@ export const baseApi = createApi({
       }),
       providesTags: ["inventory"],
     }),
+
+    //get earning chart data API
+    getEarningChartData: builder.query({
+      query: (year) => ({
+        url: `/dashboard/get-earning-chart-data${year ? `?year=${year}` : ""}`,
+        method: "GET",
+      }),
+      providesTags: ["inventory"],
+    }),
   }),
 });
 
@@ -256,4 +265,5 @@ export const {
   useGetAllOrdersQuery,
   useGetAllUsersQuery,
   useGetDashboardStatisticsQuery,
+  useGetEarningChartDataQuery,
 } = baseApi;

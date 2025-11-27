@@ -7,7 +7,6 @@ const StatsCards: React.FC = () => {
   const { data: dashboardData, isLoading } = useGetDashboardStatisticsQuery(
     undefined,
     {
-      pollingInterval: 30000, // Auto-refetch every 30 seconds
       refetchOnFocus: true, // Refetch when user returns to tab
       refetchOnReconnect: true, // Refetch when internet reconnects
     }
@@ -21,17 +20,17 @@ const StatsCards: React.FC = () => {
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
+    <div className="grid gap-4 grid-cols-1 h-full">
       <StatCard
         title="Total Product"
         value={totalProducts.toString()}
-        className="hover:shadow-md transition-shadow justify-between bg-[#003366FC]"
+        className="hover:shadow-md transition-shadow justify-between bg-[#003366FC] h-48"
       />
 
       <StatCard
         title="Total Customers"
         value={totalUsers.toString()}
-        className="hover:shadow-md transition-shadow justify-between"
+        className="hover:shadow-md transition-shadow justify-between h-48"
       />
     </div>
   );

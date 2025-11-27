@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useMemo } from "react";
 import {
   LineChart,
@@ -10,8 +11,7 @@ import {
 } from "recharts";
 import { ChevronDown } from "lucide-react";
 import { ChartSkeleton } from "@/components/skeletons";
-import { useGetAllOrdersQuery } from "@/redux/api/api";
-import type { Order } from "@/types";
+import { useGetEarningChartDataQuery } from "@/redux/api/api";
 
 const formatCurrency = (value: number) => {
   return `$${value.toFixed(2)}`;
@@ -29,6 +29,11 @@ interface CustomTooltipProps {
   label?: string;
 }
 
+interface ChartDataItem {
+  label: string;
+  totalAmount: number;
+}
+
 const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     return (
@@ -40,12 +45,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
               className="w-3 h-3 rounded-full"
               style={{ backgroundColor: entry.color }}
             />
-            <span className="text-sm text-gray-700">
-              {entry.dataKey === "avgSaleValue"
-                ? "Avg Sale Value"
-                : "Avg Items per Sale"}
-              :
-            </span>
+            <span className="text-sm text-gray-700">Total Earnings:</span>
             <span className="text-sm font-semibold text-gray-900">
               {formatCurrency(entry.value)}
             </span>
@@ -58,164 +58,72 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 };
 
 function SalesChart() {
-  const [timePeriod, setTimePeriod] = useState("7 days");
+  const [selectedYear, setSelectedYear] = useState<string>("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const timePeriods = ["7 days", "14 days", "30 days", "90 days", "1 year"];
-
-  // Fetch all orders
-  const { data: ordersData, isLoading } = useGetAllOrdersQuery(
-    { limit: 10000 },
+  // Fetch earning chart data
+  const { data: earningData, isLoading } = useGetEarningChartDataQuery(
+    selectedYear,
     {
       pollingInterval: 30000,
       refetchOnFocus: true,
     }
   );
 
-  // Calculate days based on selected period
-  const getDaysFromPeriod = (period: string): number => {
-    switch (period) {
-      case "7 days":
-        return 7;
-      case "14 days":
-        return 14;
-      case "30 days":
-        return 30;
-      case "90 days":
-        return 90;
-      case "1 year":
-        return 365;
-      default:
-        return 7;
+  // Extract available years from data
+  const availableYears = useMemo(() => {
+    if (!earningData?.data) return [];
+    return earningData.data.map((item: any) => item._id);
+  }, [earningData]);
+
+  // Set default year when data loads
+  useMemo(() => {
+    if (availableYears.length > 0 && !selectedYear) {
+      setSelectedYear(availableYears[0]);
     }
-  };
+  }, [availableYears, selectedYear]);
 
-  // Filter orders based on time period
-  const filteredOrders = useMemo(() => {
-    if (!ordersData?.data?.result) return [];
-
-    const days = getDaysFromPeriod(timePeriod);
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - days);
-
-    return ordersData.data.result.filter((order: Order) => {
-      const orderDate = new Date(order.createdAt);
-      return orderDate >= cutoffDate;
-    });
-  }, [ordersData, timePeriod]);
-
-  // Calculate chart data grouped by time intervals
+  // Transform API data to chart format
   const chartData = useMemo(() => {
-    if (filteredOrders.length === 0) return [];
+    if (!earningData?.data || earningData.data.length === 0) return [];
 
-    const days = getDaysFromPeriod(timePeriod);
+    const yearData = earningData.data.find(
+      (item: any) => item._id === selectedYear
+    );
+    if (!yearData || !yearData.earnings) return [];
 
-    const grouped: {
-      [key: string]: { totalSales: number; totalItems: number; count: number };
-    } = {};
+    return yearData.earnings.map((earning: any) => ({
+      label: earning.month,
+      totalAmount: earning.totalAmount,
+    }));
+  }, [earningData, selectedYear]);
 
-    filteredOrders.forEach((order: Order) => {
-      const orderDate = new Date(order.createdAt);
-
-      let label: string;
-      if (days === 7 || days === 14) {
-        // Daily labels
-        label = orderDate.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        });
-      } else if (days === 30) {
-        // Daily for 30 days
-        label = orderDate.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        });
-      } else if (days === 90) {
-        // Weekly labels
-        const weekStart = new Date(orderDate);
-        weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-        label = weekStart.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        });
-      } else {
-        // Monthly labels for 1 year
-        label = orderDate.toLocaleDateString("en-US", { month: "short" });
-      }
-
-      if (!grouped[label]) {
-        grouped[label] = { totalSales: 0, totalItems: 0, count: 0 };
-      }
-
-      grouped[label].totalSales += order.totalAmount;
-      grouped[label].totalItems += order.items.reduce(
-        (sum, item) => sum + item.quantity,
-        0
-      );
-      grouped[label].count += 1;
-    });
-
-    const result = Object.entries(grouped)
-      .map(([label, data]) => ({
-        label,
-        avgSaleValue: data.count > 0 ? data.totalSales / data.count : 0,
-        avgItemsPerSale: data.count > 0 ? data.totalItems / data.count : 0,
-        totalSales: data.totalSales,
-        totalItems: data.totalItems,
-        orderCount: data.count,
-      }))
-      .sort((a, b) => {
-        // Sort chronologically
-        return new Date(a.label).getTime() - new Date(b.label).getTime();
-      });
-
-    return result;
-  }, [filteredOrders, timePeriod]);
-
-  // Calculate overall metrics
-  const metrics = useMemo(() => {
-    if (filteredOrders.length === 0)
-      return { avgSaleValue: 0, avgItemsPerSale: 0, totalSales: 0 };
-
-    const totalSales = filteredOrders.reduce(
-      (sum: number, order: Order) => sum + order.totalAmount,
+  // Calculate total earnings for the year
+  const totalEarnings = useMemo(() => {
+    return chartData.reduce(
+      (sum: number, item: ChartDataItem) => sum + item.totalAmount,
       0
     );
-    const totalItems = filteredOrders.reduce(
-      (sum: number, order: Order) =>
-        sum + order.items.reduce((itemSum, item) => itemSum + item.quantity, 0),
-      0
-    );
-
-    return {
-      avgSaleValue:
-        filteredOrders.length > 0 ? totalSales / filteredOrders.length : 0,
-      avgItemsPerSale:
-        filteredOrders.length > 0 ? totalItems / filteredOrders.length : 0,
-      totalSales,
-    };
-  }, [filteredOrders]);
+  }, [chartData]);
 
   if (isLoading) {
     return <ChartSkeleton />;
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 h-full flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
-        <h1 className="text-2xl font-bold text-gray-900">
-          Your Sales this year
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-900">Earnings Overview</h1>
 
-        {/* Time Period Selector */}
+        {/* Year Selector */}
         <div className="relative">
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200"
           >
             <span className="text-sm font-medium text-gray-700">
-              {timePeriod}
+              {selectedYear || "Select Year"}
             </span>
             <ChevronDown
               className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
@@ -226,16 +134,16 @@ function SalesChart() {
 
           {isDropdownOpen && (
             <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-              {timePeriods.map((period) => (
+              {availableYears.map((year: string) => (
                 <button
-                  key={period}
+                  key={year}
                   onClick={() => {
-                    setTimePeriod(period);
+                    setSelectedYear(year);
                     setIsDropdownOpen(false);
                   }}
                   className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg transition-colors duration-150"
                 >
-                  {period}
+                  {year}
                 </button>
               ))}
             </div>
@@ -248,24 +156,18 @@ function SalesChart() {
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 bg-[#a3e635] rounded-full"></div>
           <span className="text-sm font-medium text-gray-700">
-            Average Sale Value: ${metrics.avgSaleValue.toFixed(2)}
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-[#3b82f6] rounded-full"></div>
-          <span className="text-sm font-medium text-gray-700">
-            Average Item per sale: {metrics.avgItemsPerSale.toFixed(2)}
+            Total Earnings: ${totalEarnings.toFixed(2)}
           </span>
         </div>
       </div>
 
       {/* Metrics Cards and Chart Container */}
-      <div className="relative">
+      <div className="relative flex-1 flex flex-col">
         {/* Chart */}
-        <div className="h-80 mt-8">
+        <div className="flex-1 mt-8 min-h-0">
           {chartData.length === 0 ? (
             <div className="flex items-center justify-center h-full">
-              <p className="text-gray-400">No sales data for this period</p>
+              <p className="text-gray-400">No earnings data for this year</p>
             </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
@@ -274,7 +176,7 @@ function SalesChart() {
                 margin={{
                   top: 10,
                   right: 20,
-                  left: 0,
+                  left: 10,
                   bottom: 10,
                 }}
               >
@@ -289,36 +191,20 @@ function SalesChart() {
                   tickLine={false}
                   tick={{ fontSize: 14, fill: "#9ca3af", fontWeight: 400 }}
                   dy={10}
+                  interval={0}
                 />
                 <YAxis hide />
                 <Tooltip content={<CustomTooltip />} cursor={false} />
 
                 <Line
                   type="monotone"
-                  dataKey="avgSaleValue"
+                  dataKey="totalAmount"
                   stroke="#a3e635"
                   strokeWidth={3}
                   dot={false}
                   activeDot={{
                     r: 5,
                     fill: "#a3e635",
-                    strokeWidth: 0,
-                  }}
-                  animationDuration={1000}
-                  animationEasing="ease-in-out"
-                  strokeLinecap="round"
-                />
-
-                <Line
-                  type="monotone"
-                  dataKey="avgItemsPerSale"
-                  stroke="#3b82f6"
-                  strokeWidth={3}
-                  strokeDasharray="8 8"
-                  dot={false}
-                  activeDot={{
-                    r: 5,
-                    fill: "#3b82f6",
                     strokeWidth: 0,
                   }}
                   animationDuration={1000}
