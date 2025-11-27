@@ -1,16 +1,45 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { ProductTable } from "@/components/tables/ProductTable";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { AddProductModal } from "@/components/modals/AddProductModal";
+import { useCreateProductMutation } from "@/redux/api/api";
+import { toast } from "sonner";
 
 export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [showAddModal, setShowAddModal] = useState(false);
 
+  const [createProduct, { isLoading: creating }] = useCreateProductMutation();
+
   const getBreadcrumbCategory = () => {
     if (selectedCategory === "all") return "All Products";
     return selectedCategory;
+  };
+
+  const handleCreateProduct = async (productData: any) => {
+    try {
+      const formData = new FormData();
+      const data = {
+        name: productData.name,
+        des: productData.des,
+        price: productData.price,
+        category: productData.category,
+        size: productData.size,
+        qrId: productData.qrId,
+      };
+      formData.append("data", JSON.stringify(data));
+      if (productData.image && productData.image instanceof File) {
+        formData.append("image", productData.image);
+      }
+
+      await createProduct(formData).unwrap();
+      toast.success("Product created successfully");
+      setShowAddModal(false);
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to create product");
+    }
   };
 
   return (
@@ -47,7 +76,12 @@ export default function ProductsPage() {
         onCategoryChange={setSelectedCategory}
       />
       {showAddModal && (
-        <AddProductModal open={showAddModal}  />
+        <AddProductModal
+          open={showAddModal}
+          onOpenChange={setShowAddModal}
+          onSave={handleCreateProduct}
+          isLoading={creating}
+        />
       )}
     </div>
   );

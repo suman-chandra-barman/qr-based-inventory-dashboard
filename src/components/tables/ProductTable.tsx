@@ -129,22 +129,17 @@ export function ProductTable({
     if (!productId) return;
 
     try {
-      const originalProduct = products.find((p: Product) => p.id === productId);
       const formData = new FormData();
 
-      formData.append("name", productData.name);
-      formData.append("description", productData.description || "");
-      formData.append("price", productData.price.toString());
-
-      if (
-        originalProduct &&
-        typeof originalProduct.category === "object" &&
-        originalProduct.category !== null
-      ) {
-        formData.append("category", originalProduct.category._id);
-      } else {
-        formData.append("category", productData.category);
-      }
+      const data = {
+        name: productData.name,
+        des: productData.des,
+        price: productData.price,
+        category: productData.category,
+        size: productData.size,
+        qrId: productData.qrId,
+      };
+      formData.append("data", JSON.stringify(data));
 
       if (productData.image && productData.image instanceof File) {
         formData.append("image", productData.image);
@@ -429,11 +424,13 @@ export function ProductTable({
                 category:
                   typeof productToEdit.category === "object" &&
                   productToEdit.category !== null
-                    ? productToEdit.category.name
+                    ? productToEdit.category._id
                     : productToEdit.category,
                 name: productToEdit.name,
-                description: "",
+                des: "",
                 price: productToEdit.price,
+                size: productToEdit.size || "",
+                qrId: productToEdit.qrId || "",
                 image: productToEdit.image,
               }
             : undefined

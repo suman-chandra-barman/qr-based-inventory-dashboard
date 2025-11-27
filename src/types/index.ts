@@ -4,7 +4,8 @@ export interface Product {
   name: string;
   category: string | { _id: string; name: string };
   price: number | string;
-  size: number;
+  size: string;
+  qrId?: string;
   date?: string;
   time?: string;
   createdAt?: string;
@@ -25,8 +26,10 @@ export interface Customer {
 export interface ProductFormData {
   category: string;
   name: string;
-  description: string;
+  des: string;
   price: string;
+  size: string;
+  qrId: string;
   image?: File;
 }
 
@@ -41,8 +44,10 @@ export interface AddProductModalProps {
     category: string;
     categoryId?: string;
     name: string;
-    description?: string;
+    des?: string;
     price: number | string;
+    size?: string;
+    qrId?: string;
     image?: string;
   };
 }

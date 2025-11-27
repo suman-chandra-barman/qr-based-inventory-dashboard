@@ -1,6 +1,6 @@
 import type React from "react";
 import { useState, useEffect } from "react";
-import { Upload, X, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,7 +17,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { ProductFormData, AddProductModalProps } from "@/types";
+import { ImageUpload } from "@/components/ui/image-upload";
+import type { ProductFormData, AddProductModalProps, Category } from "@/types";
+import { useGetAllCategoriesQuery } from "@/redux/api/api";
 
 export function AddProductModal({
   open,
@@ -27,39 +29,41 @@ export function AddProductModal({
   isLoading = false,
   initialData,
 }: AddProductModalProps) {
+  const { data: categoriesData } = useGetAllCategoriesQuery({});
+  const categories: Category[] = categoriesData?.data?.result || [];
+
   const [formData, setFormData] = useState<ProductFormData>({
-    category: initialData?.category || "",
+    category: initialData?.categoryId || initialData?.category || "",
     name: initialData?.name || "",
-    description: initialData?.description || "",
+    des: initialData?.des || "",
     price: initialData?.price?.toString() || "",
+    size: initialData?.size || "",
+    qrId: initialData?.qrId || "",
   });
-  const [dragActive, setDragActive] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(initialData?.image || null);
 
-  const categories = ["Hat", "Mug", "Keychains", "Bag"];
+  const sizes = ["S", "M", "L", "XL", "XXL"];
 
-  // Update form data and existing image when initialData changes
+  // Update form data when initialData changes
   useEffect(() => {
     if (editMode && initialData) {
       setFormData({
-        category: initialData.category || "",
+        category: initialData.categoryId || initialData.category || "",
         name: initialData.name || "",
-        description: initialData.description || "",
+        des: initialData.des || "",
         price: initialData.price?.toString() || "",
+        size: initialData.size || "",
+        qrId: initialData.qrId || "",
       });
-      setExistingImageUrl(initialData.image || null);
-      setSelectedImage(null); // Clear any previously selected new image
     } else if (!editMode) {
       // Reset form when switching to add mode
       setFormData({
         category: "",
         name: "",
-        description: "",
+        des: "",
         price: "",
+        size: "",
+        qrId: "",
       });
-      setExistingImageUrl(null);
-      setSelectedImage(null);
     }
   }, [editMode, initialData]);
 
@@ -67,40 +71,19 @@ export function AddProductModal({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      if (file.type.startsWith("image/")) {
-        setSelectedImage(file);
-        setFormData((prev) => ({ ...prev, image: file }));
-      }
-    }
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setSelectedImage(file);
-      setFormData((prev) => ({ ...prev, image: file }));
-    }
+  const handleImageChange = (file: File | null) => {
+    setFormData((prev) => ({ ...prev, image: file || undefined }));
   };
 
   const handleSave = () => {
-    if (formData.category && formData.name && formData.price) {
+    if (
+      formData.category &&
+      formData.name &&
+      formData.des &&
+      formData.price &&
+      formData.size &&
+      formData.qrId
+    ) {
       console.log("formData:", formData);
       onSave(formData, editMode ? initialData?.id : undefined);
       // Reset form if not in edit mode
@@ -108,11 +91,11 @@ export function AddProductModal({
         setFormData({
           category: "",
           name: "",
-          description: "",
+          des: "",
           price: "",
+          size: "",
+          qrId: "",
         });
-        setSelectedImage(null);
-        setExistingImageUrl(null);
       }
       onOpenChange(false);
     }
@@ -122,10 +105,11 @@ export function AddProductModal({
     setFormData({
       category: "",
       name: "",
-      description: "",
+      des: "",
       price: "",
+      size: "",
+      qrId: "",
     });
-    setSelectedImage(null);
     onOpenChange(false);
   };
 
@@ -144,26 +128,7 @@ export function AddProductModal({
           ></Button>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          {/* Product Category */}
-          <div className="space-y-2">
-            <Select
-              value={formData.category}
-              onValueChange={(value) => handleInputChange("category", value)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
+        <div className="space-y-2 py-4">
           {/* Product Name */}
           <div className="space-y-2">
             <Input
@@ -174,14 +139,23 @@ export function AddProductModal({
             />
           </div>
 
-          {/* Description */}
+          {/* Product Category */}
           <div className="space-y-2">
-            <Textarea
-              placeholder="Details"
-              value={formData.description}
-              onChange={(e) => handleInputChange("description", e.target.value)}
-              className="min-h-[80px] resize-none"
-            />
+            <Select
+              value={formData.category}
+              onValueChange={(value) => handleInputChange("category", value)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select product category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((category) => (
+                  <SelectItem key={category._id} value={category._id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Price */}
@@ -194,107 +168,51 @@ export function AddProductModal({
             />
           </div>
 
-          {/* Image Upload */}
+          {/* Size */}
           <div className="space-y-2">
-            {/* Show existing image or selected image preview - only when image exists */}
-            {(selectedImage || existingImageUrl) && (
-              <div className="relative mb-4 rounded-xl overflow-hidden shadow-lg border-2 border-gray-200">
-                <img
-                  src={selectedImage ? URL.createObjectURL(selectedImage) : existingImageUrl || ""}
-                  alt="Product preview"
-                  className="w-full h-64 object-contain bg-gray-50"
-                />
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="absolute top-3 right-3 h-9 w-9 p-0 rounded-full shadow-lg hover:scale-110 transition-transform"
-                  onClick={() => {
-                    setSelectedImage(null);
-                    if (!editMode) {
-                      setExistingImageUrl(null);
-                    }
-                  }}
-                >
-                  <X className="h-5 w-5" />
-                </Button>
-                {selectedImage && (
-                  <div className="absolute bottom-3 left-3 bg-gradient-to-r from-green-500 to-green-600 text-white text-sm px-4 py-2 rounded-full shadow-md flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    New image selected
-                  </div>
-                )}
-              </div>
-            )}
-            
-            {/* Upload area - always show but simplified when image exists */}
-            {!(selectedImage || existingImageUrl) ? (
-              <div
-                className={`border-2 border-dashed rounded-xl p-10 text-center transition-all ${
-                  dragActive
-                    ? "border-blue-500 bg-blue-50 scale-105"
-                    : "border-gray-300 hover:border-blue-400 hover:bg-gray-50"
-                }`}
-                onDragEnter={handleDrag}
-                onDragLeave={handleDrag}
-                onDragOver={handleDrag}
-                onDrop={handleDrop}
-              >
-                <div className="flex flex-col items-center space-y-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-teal-100 to-blue-100 rounded-full flex items-center justify-center shadow-md">
-                    <Upload className="w-8 h-8 text-teal-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                      Upload Product Image
-                    </h3>
-                    <label htmlFor="file-upload" className="cursor-pointer">
-                      <span className="text-base text-blue-600 hover:text-blue-700 font-medium underline">
-                        Browse files
-                      </span>
-                      <span className="text-gray-600"> or drag and drop</span>
-                      <input
-                        id="file-upload"
-                        type="file"
-                        className="hidden"
-                        accept="image/jpeg,image/png,image/jpg,image/webp"
-                        onChange={handleFileSelect}
-                      />
-                    </label>
-                    <p className="text-sm text-gray-500 mt-3">
-                      Supported: JPEG, PNG, JPG, WebP
-                    </p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      Maximum file size: 5MB
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div
-                className="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:border-blue-400 hover:bg-gray-50 transition-all cursor-pointer"
-                onDragEnter={handleDrag}
-                onDragLeave={handleDrag}
-                onDragOver={handleDrag}
-                onDrop={handleDrop}
-              >
-                <label htmlFor="file-upload-change" className="cursor-pointer flex items-center justify-center gap-2">
-                  <Upload className="w-5 h-5 text-blue-600" />
-                  <span className="text-base text-blue-600 hover:text-blue-700 font-medium">
-                    {selectedImage ? "Change Image" : "Replace Image"}
-                  </span>
-                  <input
-                    id="file-upload-change"
-                    type="file"
-                    className="hidden"
-                    accept="image/jpeg,image/png,image/jpg,image/webp"
-                    onChange={handleFileSelect}
-                  />
-                </label>
-              </div>
-            )}
+            <Select
+              value={formData.size}
+              onValueChange={(value) => handleInputChange("size", value)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select size" />
+              </SelectTrigger>
+              <SelectContent>
+                {sizes.map((size) => (
+                  <SelectItem key={size} value={size}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+
+          {/* QR ID */}
+          <div className="space-y-2">
+            <Input
+              placeholder="QR ID (8 characters)"
+              value={formData.qrId}
+              onChange={(e) => handleInputChange("qrId", e.target.value)}
+              className="w-full"
+              maxLength={8}
+            />
+          </div>
+
+          {/* Description */}
+          <div className="space-y-2">
+            <Textarea
+              placeholder="Write product description..."
+              value={formData.des}
+              onChange={(e) => handleInputChange("des", e.target.value)}
+              className="min-h-[80px] resize-none"
+            />
+          </div>
+
+          {/* Image Upload */}
+          <ImageUpload
+            onImageChange={handleImageChange}
+            existingImageUrl={editMode ? initialData?.image : undefined}
+          />
 
           {/* Save Button */}
           <Button
@@ -304,8 +222,11 @@ export function AddProductModal({
               isLoading ||
               !formData.category ||
               !formData.name ||
+              !formData.des ||
               !formData.price ||
-              (!editMode && !selectedImage && !existingImageUrl)
+              !formData.size ||
+              !formData.qrId ||
+              (!editMode && !formData.image)
             }
           >
             {isLoading ? (
@@ -313,8 +234,10 @@ export function AddProductModal({
                 <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                 {editMode ? "Updating..." : "Saving..."}
               </>
+            ) : editMode ? (
+              "Update"
             ) : (
-              editMode ? "Update" : "Save"
+              "Save"
             )}
           </Button>
         </div>

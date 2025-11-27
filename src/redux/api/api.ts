@@ -127,6 +127,16 @@ export const baseApi = createApi({
       invalidatesTags: ["inventory"],
     }),
 
+    //create product API
+    createProduct: builder.mutation({
+      query: (data) => ({
+        url: "/product/create",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["inventory"],
+    }),
+
     ///----------------- Notification Related APIs -----------------///
     //get admin notifications API
     getAdminNotifications: builder.query({
@@ -257,6 +267,7 @@ export const {
   useGetSingleProductQuery,
   useDeleteProductMutation,
   useUpdateProductMutation,
+  useCreateProductMutation,
   useGetAdminNotificationsQuery,
   useMarkNotificationAsReadMutation,
   useGetAllCategoriesQuery,
