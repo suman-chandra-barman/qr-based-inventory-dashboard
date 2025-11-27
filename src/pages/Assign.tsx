@@ -28,7 +28,7 @@ const Assign = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [loadingAssignments, setLoadingAssignments] = useState(false);
 
-  const itemsPerPage = 6;
+  const itemsPerPage = 10;
 
   // Fetch all users for the modal
   const { data: usersData, isLoading: loadingUsers } = useGetAllUsersQuery({

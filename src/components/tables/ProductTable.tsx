@@ -23,7 +23,7 @@ export function ProductTable({
   const [productToEdit, setProductToEdit] = useState<Product | null>(null);
   const checkboxRef = useRef<HTMLInputElement>(null);
 
-  const itemsPerPage = 8;
+  const itemsPerPage = 10;
 
   // Fetch products from API
   const { data: productsData, isLoading, refetch } = useGetAllProductsQuery({

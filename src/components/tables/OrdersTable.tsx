@@ -7,7 +7,7 @@ import { Pagination } from "../pagination/Pagination";
 
 export function OrdersTable() {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = 10;
 
   // Fetch orders from API
   const { data: ordersData, isLoading } = useGetAllOrdersQuery({

@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
-const baseUrl = "http://10.10.12.25:5008";
+const baseUrl = import.meta.env.VITE_API_BASE_URL as string ;
 
 const CategoriesPage = () => {
   const [showAddModal, setShowAddModal] = useState(false);
@@ -22,7 +22,7 @@ const CategoriesPage = () => {
   const [categoryImage, setCategoryImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
-  const itemsPerPage = 10;
+  const itemsPerPage = 20;
 
   // Fetch categories from API
   const { data: categoriesData, isLoading } = useGetAllCategoriesQuery({
