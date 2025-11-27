@@ -137,7 +137,6 @@ export function ProductTable({
         price: productData.price,
         category: productData.category,
         size: productData.size,
-        qrId: productData.qrId,
       };
       formData.append("data", JSON.stringify(data));
 
@@ -427,7 +426,7 @@ export function ProductTable({
                     ? productToEdit.category._id
                     : productToEdit.category,
                 name: productToEdit.name,
-                des: "",
+                des: productToEdit.des || "",
                 price: productToEdit.price,
                 size: productToEdit.size || "",
                 qrId: productToEdit.qrId || "",

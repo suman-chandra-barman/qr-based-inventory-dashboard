@@ -195,6 +195,7 @@ export function AddProductModal({
               onChange={(e) => handleInputChange("qrId", e.target.value)}
               className="w-full"
               maxLength={8}
+              disabled={editMode}
             />
           </div>
 
@@ -211,7 +212,11 @@ export function AddProductModal({
           {/* Image Upload */}
           <ImageUpload
             onImageChange={handleImageChange}
-            existingImageUrl={editMode ? initialData?.image : undefined}
+            existingImageUrl={
+              editMode && initialData?.image
+                ? `${import.meta.env.VITE_API_BASE_URL}${initialData.image}`
+                : undefined
+            }
           />
 
           {/* Save Button */}
@@ -225,7 +230,7 @@ export function AddProductModal({
               !formData.des ||
               !formData.price ||
               !formData.size ||
-              !formData.qrId ||
+              (!editMode && !formData.qrId) ||
               (!editMode && !formData.image)
             }
           >

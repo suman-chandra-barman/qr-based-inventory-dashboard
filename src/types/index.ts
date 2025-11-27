@@ -11,7 +11,8 @@ export interface Product {
   createdAt?: string;
   updatedAt?: string;
   image: string;
-  description?: string;
+  des?: string;
+
 }
 
 export interface Customer {
