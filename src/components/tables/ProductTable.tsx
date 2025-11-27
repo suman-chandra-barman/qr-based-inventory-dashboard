@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Checkbox } from "../ui/checkbox";
@@ -11,8 +12,9 @@ import {
   useGetAllProductsQuery,
   useDeleteProductMutation,
   useUpdateProductMutation,
+  useGetAllCategoriesQuery,
 } from "@/redux/api/api";
-import type { Product, ProductTableProps } from "@/types";
+import type { Product, ProductTableProps, Category } from "@/types";
 import { TableSkeleton } from "@/components/skeletons";
 
 export function ProductTable({
@@ -30,6 +32,11 @@ export function ProductTable({
 
   const itemsPerPage = 10;
 
+  // Fetch categories from API
+  const { data: categoriesData } = useGetAllCategoriesQuery({
+    limit: 100, // Fetch all categories without pagination
+  });
+
   // Fetch products from API
   const {
     data: productsData,
@@ -44,30 +51,18 @@ export function ProductTable({
   const [deleteProduct, { isLoading: deleting }] = useDeleteProductMutation();
   const [updateProduct, { isLoading: updating }] = useUpdateProductMutation();
 
-  // Debug: Log the API response
-  // console.log('Products API Response:', productsData);
-  // console.log('Full Response Structure:', JSON.stringify(productsData, null, 2));
-
-  // Extract data from API response - backend returns { success, message, data: {...} }
-  let products = [];
-
+  // Extract products from API response and normalize _id to id
+  let products: Product[] = [];
   if (productsData?.data) {
     const dataObj = productsData.data;
-    // Check different possible locations for the products array
-    let rawProducts = [];
-    if (Array.isArray(dataObj.data)) {
-      rawProducts = dataObj.data;
-    } else if (Array.isArray(dataObj.products)) {
-      rawProducts = dataObj.products;
-    } else if (Array.isArray(dataObj.result)) {
-      rawProducts = dataObj.result;
-    } else {
-      console.error("Products array not found in:", dataObj);
-      rawProducts = [];
-    }
+    const rawProducts = Array.isArray(dataObj.data)
+      ? dataObj.data
+      : Array.isArray(dataObj.products)
+      ? dataObj.products
+      : Array.isArray(dataObj.result)
+      ? dataObj.result
+      : [];
 
-    // Map _id to id for frontend compatibility
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     products = rawProducts.map((product: any) => ({
       ...product,
       id: product._id || product.id,
@@ -79,18 +74,6 @@ export function ProductTable({
     productsData?.data?.pagination?.totalPages ||
     1;
 
-  // Calculate categories from products if not provided by API
-  const categories =
-    productsData?.data?.categories ||
-    products.reduce((acc: Record<string, number>, product: Product) => {
-      const categoryName =
-        typeof product.category === "object" && product.category !== null
-          ? product.category.name
-          : product.category || "Uncategorized";
-      acc[categoryName] = (acc[categoryName] || 0) + 1;
-      return acc;
-    }, {});
-
   const handleCategoryClick = (category: string) => {
     onCategoryChange(category);
     setCurrentPage(1);
@@ -98,37 +81,29 @@ export function ProductTable({
   };
 
   const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedProducts(products.map((product: Product) => product.id));
-    } else {
-      setSelectedProducts([]);
-    }
+    setSelectedProducts(
+      checked ? products.map((product: Product) => product.id) : []
+    );
   };
 
   const handleSelectProduct = (productId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedProducts((prev) => [...prev, productId]);
-    } else {
-      setSelectedProducts((prev) => prev.filter((id) => id !== productId));
-    }
+    setSelectedProducts((prev) =>
+      checked ? [...prev, productId] : prev.filter((id) => id !== productId)
+    );
   };
 
   const handleBulkDelete = async () => {
     if (selectedProducts.length === 0) return;
 
     try {
-      // Delete products one by one
       await Promise.all(
         selectedProducts.map((id) => deleteProduct(id).unwrap())
       );
-
       toast.success(
         `Successfully deleted ${selectedProducts.length} product(s)`
       );
-
       setSelectedProducts([]);
       refetch();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to delete products");
     }
@@ -140,7 +115,6 @@ export function ProductTable({
       toast.success("Product deleted successfully");
       setSelectedProducts((prev) => prev.filter((id) => id !== productId));
       refetch();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to delete product");
     }
@@ -151,19 +125,17 @@ export function ProductTable({
     setIsEditModalOpen(true);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleUpdateProduct = async (productData: any, productId?: string) => {
     if (!productId) return;
 
     try {
-      // Get the original product to extract category ID
       const originalProduct = products.find((p: Product) => p.id === productId);
-
-      // Convert to FormData for file upload
       const formData = new FormData();
-      formData.append("name", productData.name);
 
-      // Send category ID if it exists, otherwise send the category name
+      formData.append("name", productData.name);
+      formData.append("description", productData.description || "");
+      formData.append("price", productData.price.toString());
+
       if (
         originalProduct &&
         typeof originalProduct.category === "object" &&
@@ -174,10 +146,6 @@ export function ProductTable({
         formData.append("category", productData.category);
       }
 
-      formData.append("description", productData.description || "");
-      formData.append("price", productData.price.toString());
-
-      // Only append image if a new file was selected
       if (productData.image && productData.image instanceof File) {
         formData.append("image", productData.image);
       }
@@ -187,7 +155,6 @@ export function ProductTable({
       setProductToEdit(null);
       setIsEditModalOpen(false);
       refetch();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to update product");
     }
@@ -208,37 +175,36 @@ export function ProductTable({
   const isIndeterminate =
     selectedProducts.length > 0 && selectedProducts.length < products.length;
 
-  // Set indeterminate state on checkbox
+  // Extract categories from API response
+  let apiCategories: Category[] = [];
+  if (
+    categoriesData?.data?.result &&
+    Array.isArray(categoriesData.data.result)
+  ) {
+    apiCategories = categoriesData.data.result.map((category: Category) => ({
+      ...category,
+      id: category._id || category.id,
+    }));
+  }
+
   useEffect(() => {
     if (checkboxRef.current) {
       checkboxRef.current.indeterminate = isIndeterminate;
     }
   }, [isIndeterminate]);
 
-  // Category tabs data
   const categoryTabs = [
-    {
-      key: "all",
-      label: "All",
-      count: Object.values(categories as Record<string, number>).reduce(
-        (sum, count) => sum + count,
-        0
-      ),
-    },
-    { key: "Hat", label: "Hat", count: categories["Hat"] || 0 },
-    { key: "Mug", label: "Mug", count: categories["Mug"] || 0 },
-    {
-      key: "mart Keychains",
-      label: "mart Keychains",
-      count: categories["mart Keychains"] || 0,
-    },
-    { key: "Bag", label: "Bag", count: categories["Bag"] || 0 },
+    { key: "all", label: "All" },
+    ...apiCategories.map((category) => ({
+      key: category.name,
+      label: category.name,
+    })),
   ];
 
   return (
     <div className="space-y-6">
       {/* Category Tabs */}
-      <div className="bg-gray-50 rounded-lg p-1 flex gap-1 overflow-x-auto">
+      <div className="bg-gray-50 rounded-lg p-1 flex gap-2 flex-wrap">
         {categoryTabs.map((tab) => (
           <button
             key={tab.key}
@@ -249,7 +215,7 @@ export function ProductTable({
                 : "text-gray-600 hover:text-gray-900 hover:bg-white"
             }`}
           >
-            {tab.label} ({tab.count})
+            {tab.label}
           </button>
         ))}
       </div>
@@ -334,7 +300,9 @@ export function ProductTable({
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <img
-                          src={product.image || "/placeholder.svg"}
+                          src={`${import.meta.env.VITE_API_BASE_URL}${
+                            product.image as string
+                          }`}
                           alt={product.name}
                           className="w-10 h-10 rounded-lg object-cover"
                         />

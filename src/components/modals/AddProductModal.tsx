@@ -131,10 +131,10 @@ export function AddProductModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold">
-            {editMode ? "Edit Product" : "Add Product"}
+            {editMode ? "Edit Product" : "Add New Product"}
           </DialogTitle>
           <Button
             variant="ghost"

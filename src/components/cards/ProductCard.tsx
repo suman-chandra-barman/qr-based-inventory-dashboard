@@ -26,7 +26,7 @@ export function ProductCard({
       className={`group cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-[1.02] py-0 ${className}`}
     >
       <CardContent className="p-4">
-        <div 
+        <div
           className="aspect-square mb-3 bg-gray-50 rounded-lg overflow-hidden flex items-center justify-center"
           onClick={onClick}
         >

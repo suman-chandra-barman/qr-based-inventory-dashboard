@@ -86,7 +86,8 @@ export const baseApi = createApi({
     getAllProducts: builder.query({
       query: (params) => {
         const searchParams = new URLSearchParams();
-        if (params?.category) searchParams.append("category", params.category);
+        if (params?.category)
+          searchParams.append("searchTerm", params.category);
         if (params?.page) searchParams.append("page", params.page.toString());
         if (params?.limit)
           searchParams.append("limit", params.limit.toString());
