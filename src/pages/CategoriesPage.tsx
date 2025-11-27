@@ -3,19 +3,32 @@ import ProductCard from "../components/cards/ProductCard";
 import { useState } from "react";
 import { Button } from "../components/ui/button";
 import { Pagination } from "@/components/pagination/Pagination";
-import { useGetAllCategoriesQuery, useGetCategoryDetailsQuery, useCreateCategoryMutation, useUpdateCategoryMutation } from "@/redux/api/api";
+import { ProductCardSkeleton } from "@/components/skeletons";
+import {
+  useGetAllCategoriesQuery,
+  useGetCategoryDetailsQuery,
+  useCreateCategoryMutation,
+  useUpdateCategoryMutation,
+} from "@/redux/api/api";
 import type { Category } from "@/types";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
-const baseUrl = import.meta.env.VITE_API_BASE_URL as string ;
+const baseUrl = import.meta.env.VITE_API_BASE_URL as string;
 
 const CategoriesPage = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+    null
+  );
   const [editCategoryId, setEditCategoryId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [categoryName, setCategoryName] = useState("");
@@ -31,21 +44,27 @@ const CategoriesPage = () => {
   });
 
   // Fetch category details when a category is selected
-  const { data: categoryDetails, isLoading: isLoadingDetails } = useGetCategoryDetailsQuery(
-    selectedCategoryId!,
-    { skip: !selectedCategoryId }
-  );
+  const { data: categoryDetails, isLoading: isLoadingDetails } =
+    useGetCategoryDetailsQuery(selectedCategoryId!, {
+      skip: !selectedCategoryId,
+    });
 
   // Create category mutation
-  const [createCategory, { isLoading: isCreating }] = useCreateCategoryMutation();
-  
+  const [createCategory, { isLoading: isCreating }] =
+    useCreateCategoryMutation();
+
   // Update category mutation
-  const [updateCategory, { isLoading: isUpdating }] = useUpdateCategoryMutation();
+  const [updateCategory, { isLoading: isUpdating }] =
+    useUpdateCategoryMutation();
 
   const handleEditClick = (category: Category) => {
     setEditCategoryId(category._id || category.id || null);
     setCategoryName(category.name);
-    setExistingImageUrl(category.image.startsWith('http') ? category.image : `${baseUrl}${category.image}`);
+    setExistingImageUrl(
+      category.image.startsWith("http")
+        ? category.image
+        : `${baseUrl}${category.image}`
+    );
     setImagePreview(null);
     setCategoryImage(null);
     setShowEditModal(true);
@@ -53,7 +72,10 @@ const CategoriesPage = () => {
 
   // Extract categories from API response
   let categories: Category[] = [];
-  if (categoriesData?.data?.result && Array.isArray(categoriesData.data.result)) {
+  if (
+    categoriesData?.data?.result &&
+    Array.isArray(categoriesData.data.result)
+  ) {
     categories = categoriesData.data.result.map((category: Category) => ({
       ...category,
       id: category._id || category.id,
@@ -87,8 +109,8 @@ const CategoriesPage = () => {
 
     try {
       const formData = new FormData();
-      formData.append('name', categoryName);
-      formData.append('image', categoryImage);
+      formData.append("name", categoryName);
+      formData.append("image", categoryImage);
 
       await createCategory(formData).unwrap();
       toast.success("Category created successfully");
@@ -98,7 +120,7 @@ const CategoriesPage = () => {
       setImagePreview(null);
     } catch (error) {
       toast.error("Failed to create category");
-      console.error('Create category error:', error);
+      console.error("Create category error:", error);
     }
   };
 
@@ -110,9 +132,9 @@ const CategoriesPage = () => {
 
     try {
       const formData = new FormData();
-      formData.append('name', categoryName);
+      formData.append("name", categoryName);
       if (categoryImage) {
-        formData.append('image', categoryImage);
+        formData.append("image", categoryImage);
       }
 
       await updateCategory({ id: editCategoryId, data: formData }).unwrap();
@@ -125,7 +147,7 @@ const CategoriesPage = () => {
       setEditCategoryId(null);
     } catch (error) {
       toast.error("Failed to update category");
-      console.error('Update category error:', error);
+      console.error("Update category error:", error);
     }
   };
 
@@ -158,8 +180,10 @@ const CategoriesPage = () => {
       </div>
 
       {isLoading ? (
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {Array.from({ length: 10 }).map((_, index) => (
+            <ProductCardSkeleton key={index} />
+          ))}
         </div>
       ) : categories.length === 0 ? (
         <div className="flex items-center justify-center h-64">
@@ -173,7 +197,11 @@ const CategoriesPage = () => {
               id={category.id || category._id}
               name={category.name}
               price={0}
-              image={category.image.startsWith('http') ? category.image : `${baseUrl}${category.image}`}
+              image={
+                category.image.startsWith("http")
+                  ? category.image
+                  : `${baseUrl}${category.image}`
+              }
               onClick={() => setSelectedCategoryId(category.id || category._id)}
               onEdit={() => handleEditClick(category)}
             />
@@ -273,7 +301,9 @@ const CategoriesPage = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="editCategoryImage">Category Image (optional - leave empty to keep current)</Label>
+              <Label htmlFor="editCategoryImage">
+                Category Image (optional - leave empty to keep current)
+              </Label>
               <Input
                 id="editCategoryImage"
                 type="file"
@@ -324,7 +354,10 @@ const CategoriesPage = () => {
       </Dialog>
 
       {/* Category Details Modal */}
-      <Dialog open={!!selectedCategoryId} onOpenChange={(open) => !open && setSelectedCategoryId(null)}>
+      <Dialog
+        open={!!selectedCategoryId}
+        onOpenChange={(open) => !open && setSelectedCategoryId(null)}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Category Details</DialogTitle>
@@ -337,48 +370,70 @@ const CategoriesPage = () => {
             <div className="space-y-4">
               <div className="aspect-square w-full bg-gray-50 rounded-lg overflow-hidden">
                 <img
-                  src={categoryDetails.data.image?.startsWith('http') ? categoryDetails.data.image : `${baseUrl}${categoryDetails.data.image}`}
+                  src={
+                    categoryDetails.data.image?.startsWith("http")
+                      ? categoryDetails.data.image
+                      : `${baseUrl}${categoryDetails.data.image}`
+                  }
                   alt={categoryDetails.data.name}
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="space-y-2">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Category Name</p>
-                  <p className="text-base font-semibold text-gray-900">{categoryDetails.data.name}</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    Category Name
+                  </p>
+                  <p className="text-base font-semibold text-gray-900">
+                    {categoryDetails.data.name}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Category ID</p>
-                  <p className="text-sm text-gray-900 font-mono">{categoryDetails.data._id}</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    Category ID
+                  </p>
+                  <p className="text-sm text-gray-900 font-mono">
+                    {categoryDetails.data._id}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Created At</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    Created At
+                  </p>
                   <p className="text-base text-gray-900">
-                    {new Date(categoryDetails.data.createdAt).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
+                    {new Date(
+                      categoryDetails.data.createdAt
+                    ).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
                     })}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Updated At</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    Updated At
+                  </p>
                   <p className="text-base text-gray-900">
-                    {new Date(categoryDetails.data.updatedAt).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
+                    {new Date(
+                      categoryDetails.data.updatedAt
+                    ).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
                     })}
                   </p>
                 </div>
               </div>
             </div>
           ) : (
-            <p className="text-center text-gray-400 py-8">No details available</p>
+            <p className="text-center text-gray-400 py-8">
+              No details available
+            </p>
           )}
         </DialogContent>
       </Dialog>

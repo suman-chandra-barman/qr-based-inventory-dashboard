@@ -7,8 +7,13 @@ import { toast } from "sonner";
 import { Pagination } from "../pagination/Pagination";
 import { DetailsModal } from "../modals/DetailsModal";
 import { AddProductModal } from "../modals/AddProductModal";
-import { useGetAllProductsQuery, useDeleteProductMutation, useUpdateProductMutation } from "@/redux/api/api";
+import {
+  useGetAllProductsQuery,
+  useDeleteProductMutation,
+  useUpdateProductMutation,
+} from "@/redux/api/api";
 import type { Product, ProductTableProps } from "@/types";
+import { TableSkeleton } from "@/components/skeletons";
 
 export function ProductTable({
   selectedCategory,
@@ -26,8 +31,12 @@ export function ProductTable({
   const itemsPerPage = 10;
 
   // Fetch products from API
-  const { data: productsData, isLoading, refetch } = useGetAllProductsQuery({
-    category: selectedCategory === 'all' ? undefined : selectedCategory,
+  const {
+    data: productsData,
+    isLoading,
+    refetch,
+  } = useGetAllProductsQuery({
+    category: selectedCategory === "all" ? undefined : selectedCategory,
     page: currentPage,
     limit: itemsPerPage,
   });
@@ -41,7 +50,7 @@ export function ProductTable({
 
   // Extract data from API response - backend returns { success, message, data: {...} }
   let products = [];
-  
+
   if (productsData?.data) {
     const dataObj = productsData.data;
     // Check different possible locations for the products array
@@ -53,10 +62,10 @@ export function ProductTable({
     } else if (Array.isArray(dataObj.result)) {
       rawProducts = dataObj.result;
     } else {
-      console.error('Products array not found in:', dataObj);
+      console.error("Products array not found in:", dataObj);
       rawProducts = [];
     }
-    
+
     // Map _id to id for frontend compatibility
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     products = rawProducts.map((product: any) => ({
@@ -65,16 +74,22 @@ export function ProductTable({
     }));
   }
 
-  const totalPages = productsData?.data?.meta?.totalPages || productsData?.data?.pagination?.totalPages || 1;
-  
+  const totalPages =
+    productsData?.data?.meta?.totalPages ||
+    productsData?.data?.pagination?.totalPages ||
+    1;
+
   // Calculate categories from products if not provided by API
-  const categories = productsData?.data?.categories || products.reduce((acc: Record<string, number>, product: Product) => {
-    const categoryName = typeof product.category === 'object' && product.category !== null 
-      ? product.category.name 
-      : (product.category || 'Uncategorized');
-    acc[categoryName] = (acc[categoryName] || 0) + 1;
-    return acc;
-  }, {});
+  const categories =
+    productsData?.data?.categories ||
+    products.reduce((acc: Record<string, number>, product: Product) => {
+      const categoryName =
+        typeof product.category === "object" && product.category !== null
+          ? product.category.name
+          : product.category || "Uncategorized";
+      acc[categoryName] = (acc[categoryName] || 0) + 1;
+      return acc;
+    }, {});
 
   const handleCategoryClick = (category: string) => {
     onCategoryChange(category);
@@ -113,7 +128,7 @@ export function ProductTable({
 
       setSelectedProducts([]);
       refetch();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to delete products");
     }
@@ -125,7 +140,7 @@ export function ProductTable({
       toast.success("Product deleted successfully");
       setSelectedProducts((prev) => prev.filter((id) => id !== productId));
       refetch();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to delete product");
     }
@@ -139,36 +154,40 @@ export function ProductTable({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleUpdateProduct = async (productData: any, productId?: string) => {
     if (!productId) return;
-    
+
     try {
       // Get the original product to extract category ID
       const originalProduct = products.find((p: Product) => p.id === productId);
-      
+
       // Convert to FormData for file upload
       const formData = new FormData();
-      formData.append('name', productData.name);
-      
+      formData.append("name", productData.name);
+
       // Send category ID if it exists, otherwise send the category name
-      if (originalProduct && typeof originalProduct.category === 'object' && originalProduct.category !== null) {
-        formData.append('category', originalProduct.category._id);
+      if (
+        originalProduct &&
+        typeof originalProduct.category === "object" &&
+        originalProduct.category !== null
+      ) {
+        formData.append("category", originalProduct.category._id);
       } else {
-        formData.append('category', productData.category);
+        formData.append("category", productData.category);
       }
-      
-      formData.append('description', productData.description || '');
-      formData.append('price', productData.price.toString());
-      
+
+      formData.append("description", productData.description || "");
+      formData.append("price", productData.price.toString());
+
       // Only append image if a new file was selected
       if (productData.image && productData.image instanceof File) {
-        formData.append('image', productData.image);
+        formData.append("image", productData.image);
       }
-      
+
       await updateProduct({ id: productId, data: formData }).unwrap();
       toast.success("Product updated successfully");
       setProductToEdit(null);
       setIsEditModalOpen(false);
       refetch();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to update product");
     }
@@ -201,7 +220,10 @@ export function ProductTable({
     {
       key: "all",
       label: "All",
-      count: Object.values(categories as Record<string, number>).reduce((sum, count) => sum + count, 0),
+      count: Object.values(categories as Record<string, number>).reduce(
+        (sum, count) => sum + count,
+        0
+      ),
     },
     { key: "Hat", label: "Hat", count: categories["Hat"] || 0 },
     { key: "Mug", label: "Mug", count: categories["Mug"] || 0 },
@@ -291,12 +313,7 @@ export function ProductTable({
             </thead>
             <tbody>
               {isLoading ? (
-                <tr>
-                  <td colSpan={6} className="p-8 text-center">
-                    <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
-                    <p className="text-gray-500">Loading products...</p>
-                  </td>
-                </tr>
+                <TableSkeleton rows={5} columns={6} />
               ) : products.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="p-8 text-center text-gray-500">
@@ -330,16 +347,36 @@ export function ProductTable({
                       </div>
                     </td>
                     <td className="p-4 text-gray-900">
-                      ${typeof product.price === 'number' ? product.price.toFixed(2) : parseFloat(String(product.price || '0')).toFixed(2)}
+                      $
+                      {typeof product.price === "number"
+                        ? product.price.toFixed(2)
+                        : parseFloat(String(product.price || "0")).toFixed(2)}
                     </td>
                     <td className="p-4 text-gray-900">{product.size}</td>
                     <td className="p-4 text-gray-500">
                       <div>
                         <p>
-                          {product.date || (product.createdAt ? new Date(product.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : "N/A")}
+                          {product.date ||
+                            (product.createdAt
+                              ? new Date(product.createdAt).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                  }
+                                )
+                              : "N/A")}
                         </p>
                         <p className="text-sm">
-                          at {product.time || (product.createdAt ? new Date(product.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : "N/A")}
+                          at{" "}
+                          {product.time ||
+                            (product.createdAt
+                              ? new Date(product.createdAt).toLocaleTimeString(
+                                  "en-US",
+                                  { hour: "2-digit", minute: "2-digit" }
+                                )
+                              : "N/A")}
                         </p>
                       </div>
                     </td>
@@ -375,7 +412,9 @@ export function ProductTable({
                         </Button>
                         <Button
                           size="sm"
-                          onClick={() => navigate(`/assign?productId=${product.id}`)}
+                          onClick={() =>
+                            navigate(`/assign?productId=${product.id}`)
+                          }
                           className="bg-[#FFD700] text-[#003366] hover:bg-amber-400 rounded-full px-4"
                           title="Assign product"
                         >
@@ -415,16 +454,22 @@ export function ProductTable({
         onSave={handleUpdateProduct}
         editMode={true}
         isLoading={updating}
-        initialData={productToEdit ? {
-          id: productToEdit.id,
-          category: typeof productToEdit.category === 'object' && productToEdit.category !== null 
-            ? productToEdit.category.name 
-            : productToEdit.category,
-          name: productToEdit.name,
-          description: "",
-          price: productToEdit.price,
-          image: productToEdit.image,
-        } : undefined}
+        initialData={
+          productToEdit
+            ? {
+                id: productToEdit.id,
+                category:
+                  typeof productToEdit.category === "object" &&
+                  productToEdit.category !== null
+                    ? productToEdit.category.name
+                    : productToEdit.category,
+                name: productToEdit.name,
+                description: "",
+                price: productToEdit.price,
+                image: productToEdit.image,
+              }
+            : undefined
+        }
       />
     </div>
   );

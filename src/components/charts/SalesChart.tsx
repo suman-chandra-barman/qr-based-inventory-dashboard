@@ -8,7 +8,8 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { ChevronDown, Loader2 } from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import { ChartSkeleton } from "@/components/skeletons";
 import { useGetAllOrdersQuery } from "@/redux/api/api";
 import type { Order } from "@/types";
 
@@ -92,7 +93,7 @@ function SalesChart() {
   // Filter orders based on time period
   const filteredOrders = useMemo(() => {
     if (!ordersData?.data?.result) return [];
-    
+
     const days = getDaysFromPeriod(timePeriod);
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
@@ -109,26 +110,37 @@ function SalesChart() {
 
     const days = getDaysFromPeriod(timePeriod);
 
-    const grouped: { [key: string]: { totalSales: number; totalItems: number; count: number } } = {};
+    const grouped: {
+      [key: string]: { totalSales: number; totalItems: number; count: number };
+    } = {};
 
     filteredOrders.forEach((order: Order) => {
       const orderDate = new Date(order.createdAt);
-      
+
       let label: string;
       if (days === 7 || days === 14) {
         // Daily labels
-        label = orderDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        label = orderDate.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        });
       } else if (days === 30) {
         // Daily for 30 days
-        label = orderDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        label = orderDate.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        });
       } else if (days === 90) {
         // Weekly labels
         const weekStart = new Date(orderDate);
         weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-        label = weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        label = weekStart.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        });
       } else {
         // Monthly labels for 1 year
-        label = orderDate.toLocaleDateString('en-US', { month: 'short' });
+        label = orderDate.toLocaleDateString("en-US", { month: "short" });
       }
 
       if (!grouped[label]) {
@@ -136,7 +148,10 @@ function SalesChart() {
       }
 
       grouped[label].totalSales += order.totalAmount;
-      grouped[label].totalItems += order.items.reduce((sum, item) => sum + item.quantity, 0);
+      grouped[label].totalItems += order.items.reduce(
+        (sum, item) => sum + item.quantity,
+        0
+      );
       grouped[label].count += 1;
     });
 
@@ -159,28 +174,30 @@ function SalesChart() {
 
   // Calculate overall metrics
   const metrics = useMemo(() => {
-    if (filteredOrders.length === 0) return { avgSaleValue: 0, avgItemsPerSale: 0, totalSales: 0 };
+    if (filteredOrders.length === 0)
+      return { avgSaleValue: 0, avgItemsPerSale: 0, totalSales: 0 };
 
-    const totalSales = filteredOrders.reduce((sum: number, order: Order) => sum + order.totalAmount, 0);
-    const totalItems = filteredOrders.reduce((sum: number, order: Order) => 
-      sum + order.items.reduce((itemSum, item) => itemSum + item.quantity, 0), 0
+    const totalSales = filteredOrders.reduce(
+      (sum: number, order: Order) => sum + order.totalAmount,
+      0
+    );
+    const totalItems = filteredOrders.reduce(
+      (sum: number, order: Order) =>
+        sum + order.items.reduce((itemSum, item) => itemSum + item.quantity, 0),
+      0
     );
 
     return {
-      avgSaleValue: filteredOrders.length > 0 ? totalSales / filteredOrders.length : 0,
-      avgItemsPerSale: filteredOrders.length > 0 ? totalItems / filteredOrders.length : 0,
+      avgSaleValue:
+        filteredOrders.length > 0 ? totalSales / filteredOrders.length : 0,
+      avgItemsPerSale:
+        filteredOrders.length > 0 ? totalItems / filteredOrders.length : 0,
       totalSales,
     };
   }, [filteredOrders]);
 
   if (isLoading) {
-    return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-        </div>
-      </div>
-    );
+    return <ChartSkeleton />;
   }
 
   return (
@@ -261,7 +278,11 @@ function SalesChart() {
                   bottom: 10,
                 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#f3f4f6"
+                  vertical={false}
+                />
                 <XAxis
                   dataKey="label"
                   axisLine={false}

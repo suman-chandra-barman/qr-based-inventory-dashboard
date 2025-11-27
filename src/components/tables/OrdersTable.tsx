@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Loader2 } from "lucide-react";
 import { useGetAllOrdersQuery } from "@/redux/api/api";
 import type { Order } from "@/types";
 import { Pagination } from "../pagination/Pagination";
+import { TableSkeleton } from "@/components/skeletons";
 
 export function OrdersTable() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -27,7 +27,7 @@ export function OrdersTable() {
     } else if (Array.isArray(dataObj.orders)) {
       rawOrders = dataObj.orders;
     }
-    
+
     // Map _id to id for frontend compatibility
     orders = rawOrders.map((order: Order) => ({
       ...order,
@@ -36,7 +36,10 @@ export function OrdersTable() {
   }
 
   // Calculate total pages from total count and items per page
-  const totalCount = ordersData?.data?.meta?.total || ordersData?.data?.pagination?.total || orders.length;
+  const totalCount =
+    ordersData?.data?.meta?.total ||
+    ordersData?.data?.pagination?.total ||
+    orders.length;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   const handlePageChange = (page: number) => {
@@ -46,10 +49,10 @@ export function OrdersTable() {
   // Format date helper
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -96,16 +99,7 @@ export function OrdersTable() {
             </thead>
             <tbody>
               {isLoading ? (
-                <tr>
-                  <td colSpan={6} className="p-8 text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-muted-foreground">
-                        Loading orders...
-                      </span>
-                    </div>
-                  </td>
-                </tr>
+                <TableSkeleton rows={5} columns={6} />
               ) : orders.length === 0 ? (
                 <tr>
                   <td
@@ -161,7 +155,8 @@ export function OrdersTable() {
                               : "bg-yellow-600"
                           }`}
                         />
-                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                        {order.status.charAt(0).toUpperCase() +
+                          order.status.slice(1)}
                       </Badge>
                     </td>
                     <td className="p-4 align-middle font-medium">

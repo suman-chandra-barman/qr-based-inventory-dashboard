@@ -223,6 +223,16 @@ export const baseApi = createApi({
     }),
 
     ///----------------- Inventory Related APIs -----------------///
+
+    ///----------------- Dashboard Related APIs -----------------///
+    //get dashboard statistics API
+    getDashboardStatistics: builder.query({
+      query: () => ({
+        url: `/dashboard/get-all-data`,
+        method: "GET",
+      }),
+      providesTags: ["inventory"],
+    }),
   }),
 });
 
@@ -245,4 +255,5 @@ export const {
   useUpdateCategoryMutation,
   useGetAllOrdersQuery,
   useGetAllUsersQuery,
+  useGetDashboardStatisticsQuery,
 } = baseApi;

@@ -87,9 +87,6 @@ export interface Order {
 export interface StatCardProps {
   title: string;
   value: string;
-  change: string;
-  trend: "up" | "down";
-  subtitle?: string;
   className?: string;
 }
 
