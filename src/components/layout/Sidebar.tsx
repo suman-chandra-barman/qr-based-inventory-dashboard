@@ -12,7 +12,7 @@ import {
   LogIn,
 } from "lucide-react";
 import logo from "../../assets/logo.png";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store";
 import { useState } from "react";
@@ -20,8 +20,6 @@ import LogoutModal from "@/components/modals/LogoutModal";
 
 interface SidebarProps {
   className?: string;
-  activeItem: string;
-  onItemClick: (item: string) => void;
   isCollapsed?: boolean;
   setIsCollapsed: (collapsed: boolean) => void;
 }
@@ -70,12 +68,11 @@ const toolsNavItems: NavItem[] = [
 
 const Sidebar: React.FC<SidebarProps> = ({
   className,
-  activeItem,
-  onItemClick,
   isCollapsed,
   setIsCollapsed,
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
@@ -84,10 +81,13 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const NavItemComponent = ({ item }: { item: NavItem }) => {
-    const isActive = activeItem === item.href;
+    // Check if current path starts with the nav item's href
+    const currentPath = location.pathname;
+    const isActive =
+      currentPath === `/${item.href}` ||
+      currentPath.startsWith(`/${item.href}/`);
 
     const handleClick = (href: string) => {
-      onItemClick(href);
       navigate(`/${href}`);
     };
 

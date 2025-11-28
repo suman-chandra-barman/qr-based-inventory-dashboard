@@ -5,15 +5,12 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 
 function MainLayout() {
-  const [activeItem, setActiveItem] = useState("dashboard");
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
     <div className="flex h-screen bg-background">
       <Sidebar
         className="fixed"
-        activeItem={activeItem}
-        onItemClick={setActiveItem}
         isCollapsed={isCollapsed}
         setIsCollapsed={setIsCollapsed}
       />
