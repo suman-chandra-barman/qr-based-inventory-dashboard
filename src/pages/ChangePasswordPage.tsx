@@ -52,8 +52,9 @@ export function ChangePasswordPage() {
   const onSubmit = async (data: ChangePassword) => {
     try {
       const res = await changePassword({
-        oldPassword: data.oldPassword,
+        currentPassword: data.oldPassword,
         newPassword: data.newPassword,
+        confirmPassword: data.confirmPassword,
       }).unwrap();
 
       toast.success(res?.message || "Your password has been successfully updated.", {
@@ -74,10 +75,10 @@ export function ChangePasswordPage() {
 
 
   return (
-    <div className=" min-h-screen bg-gray-50 p-4">
+    <div className="p-4">
       <div className="max-w-md mx-auto">
         {/* Main Content */}
-        <div className="bg-white rounded-lg border p-6 ">
+        <div className="rounded-lg border p-6 ">
           <div className="flex items-center gap-3 mb-6">
              <BackButton />
             <h1 className="text-xl font-semibold text-gray-900">
