@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { useGetAllUsersQuery } from "@/redux/api/api";
 import type { User } from "@/types";
 
-const baseUrl = "http://10.10.12.25:5008";
+const baseUrl = import.meta.env.VITE_API_BASE_URL;;
 
 export type AssignModalProps = {
   productId?: string | null;

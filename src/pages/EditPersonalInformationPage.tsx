@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { useDispatch } from "react-redux";
 import { updateUser } from "@/redux/features/auth/authSlice";
 
-const baseUrl = "http://10.10.12.25:5008";
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
 // Define schema using Zod
 const formSchema = z.object({

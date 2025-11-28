@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 
-const baseUrl = "http://10.10.12.25:5008";
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
 export default function PersonalInformationPage() {
   const navigate = useNavigate();

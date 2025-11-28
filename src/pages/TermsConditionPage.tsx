@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
-const baseUrl = "http://10.10.12.25:5008";
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
 function TermsConditionPage() {
   const navigate = useNavigate();
