@@ -172,7 +172,7 @@ const CategoriesPage = () => {
           onClick={() => setShowAddModal(true)}
           className="bg-[#FFD700] text-[#003366] hover:bg-amber-400 rounded-full"
         >
-          Add Category <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4" /> Add Category
         </Button>
       </div>
 

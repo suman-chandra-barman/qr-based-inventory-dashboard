@@ -137,7 +137,7 @@ export default function PersonalInformationPage() {
                   />
                 </div>
                 {/* Edit Profile Button */}
-                <div className="w-full pt-4 text-right">
+                <div className="w-full pt-4 flex justify-end">
                   <Link
                     to="/settings/personal-information/edit"
                     className="block"
