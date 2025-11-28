@@ -311,6 +311,25 @@ export const baseApi = createApi({
       }),
       invalidatesTags: ["inventory"],
     }),
+
+    //get about us API
+    getAboutUs: builder.query({
+      query: () => ({
+        url: `/setting/get/about-us`,
+        method: "GET",
+      }),
+      providesTags: ["inventory"],
+    }),
+
+    //update about us API
+    updateAboutUs: builder.mutation({
+      query: (data) => ({
+        url: `/setting/update/about-us`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ["inventory"],
+    }),
   }),
 });
 
@@ -342,4 +361,6 @@ export const {
   useUpdateTermsConditionsMutation,
   useGetPrivacyPolicyQuery,
   useUpdatePrivacyPolicyMutation,
+  useGetAboutUsQuery,
+  useUpdateAboutUsMutation,
 } = baseApi;
