@@ -1,70 +1,77 @@
 import { Button } from "../components/ui/button";
+import { useNavigate } from "react-router-dom";
 import BackButton from "@/components/buttons/BackButton";
+import { useGetPrivacyPolicyQuery } from "../redux/api/api";
 
 function PrivacyPolicyPage() {
+  const navigate = useNavigate();
+  const { data, isLoading } = useGetPrivacyPolicyQuery(undefined);
 
+  const content = data?.data?.description;
+
+  const handleEdit = () => {
+    navigate("/settings/privacy-policy/edit");
+  };
 
   return (
-    <div className="p-6 bg-white rounded-lg">
-      <div className="flex items-center gap-3 mb-6">
-         <BackButton />
-        <h2 className="text-xl font-semibold text-gray-900">Privacy Policy</h2>
-      </div>
-      <div>
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestiae unde
-        doloribus voluptates voluptas explicabo nulla magnam exercitationem
-        ducimus alias expedita quam soluta aspernatur quisquam, quibusdam, quia
-        nesciunt tempora? Unde exercitationem, magnam aliquid placeat quas
-        adipisci odio consequatur, accusamus officiis suscipit saepe similique.
-        Perferendis ut illum nam rem. Maiores perspiciatis hic modi est
-        repellat, quae iure provident suscipit qui quisquam quo nihil deleniti
-        eos nisi commodi, sapiente cum? Ullam omnis tempora voluptate repellat
-        cum beatae modi praesentium odio dolor, eos nisi possimus rem qui nihil
-        ipsa quas est ad commodi molestias nam eius numquam perferendis,
-        reiciendis nobis! Laboriosam exercitationem quibusdam velit eius natus!
-        Ea hic reprehenderit veritatis doloremque maiores vero mollitia dolorum
-        nulla sapiente, magni fugiat earum quo voluptatem corporis debitis animi
-        magnam dolore assumenda aliquam odit laudantium. Itaque sint adipisci
-        suscipit asperiores quisquam saepe enim iure maiores excepturi deleniti
-        nobis officiis in, unde, dicta eum quas, aliquid aspernatur dolorem
-        vitae pariatur atque temporibus voluptas autem veniam! Exercitationem
-        laudantium porro ab corporis quod eos dolorem provident natus veniam
-        ducimus alias sequi, quo iste, consequuntur atque minima quisquam
-        tempore saepe magni veritatis totam reiciendis eum nobis. Eaque eius
-        delectus nihil cum. Earum illo aliquam molestiae soluta, animi qui
-        commodi deserunt adipisci dicta quasi perspiciatis ratione quisquam
-        illum vitae quae inventore eum ipsa ex beatae! Quam, doloremque
-        accusantium aut distinctio provident culpa repudiandae, sint asperiores
-        nesciunt eligendi molestias! Nihil sunt, reiciendis necessitatibus animi
-        delectus amet illum vero magni qui? Id suscipit consequuntur, rem
-        quaerat perferendis ratione officiis tempora consectetur libero in
-        dolorum! Magni harum quas molestiae voluptates, veritatis rerum sit
-        vitae iste placeat error accusamus accusantium in nam deleniti corporis
-        minus, quos unde? Iure veritatis, excepturi quia in voluptate doloremque
-        omnis ducimus animi beatae eaque voluptates perferendis hic magni, qui
-        explicabo accusantium aliquid ab quasi? Excepturi recusandae quaerat
-        ducimus vero dolores iste quas odio aspernatur! Sit, ex amet mollitia a
-        porro blanditiis est cupiditate aperiam tempora, consequuntur quidem
-        odit quae reiciendis provident quod magni repellendus corporis deleniti
-        exercitationem sed. Iste asperiores, deleniti quae ratione autem,
-        voluptate iusto esse architecto exercitationem, aliquam dolorem impedit
-        quam dignissimos doloribus recusandae? Quas qui eaque doloremque quae
-        ullam. Quia rem tenetur voluptas doloribus expedita quibusdam placeat id
-        iure cumque atque. Dolorum nobis quibusdam inventore dolores reiciendis
-        sit quis tempore minus obcaecati consequuntur expedita similique ab
-        repellendus corporis neque amet, eveniet, ratione iure earum quae
-        incidunt nihil! Tempore optio eum, odit sit deserunt soluta at
-        distinctio vel quidem alias necessitatibus, quam cumque voluptates
-        voluptate dolor quo incidunt, non dolores sint explicabo error sed
-        minima? Nulla doloribus quod repellat reiciendis fugiat? Fuga tempora
-        doloremque pariatur aut minus quaerat molestiae ea quidem eum vero
-        perspiciatis ipsam dolorum ducimus eveniet voluptas voluptatem
-        reprehenderit, cumque facilis. Doloribus, voluptates. Quos, cumque
-      </div>
-      <div className="mt-6 text-end">
-        <Button className=" w-52 bg-yellow-400 hover:bg-yellow-500 text-black font-medium h-12 rounded-full">
-          Edit
-        </Button>
+    <div className="h-full bg-gray-50 p-6">
+      <div className="p-6 bg-white rounded-lg">
+        <div className="flex items-center gap-3 mb-6">
+          <BackButton />
+          <h2 className="text-xl font-semibold text-gray-900">
+            Privacy Policy
+          </h2>
+        </div>
+
+        {isLoading ? (
+          <div className="text-gray-700 leading-relaxed mb-8 min-h-[400px] flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+              <p>Loading...</p>
+            </div>
+          </div>
+        ) : content ? (
+          <div
+            className="text-gray-700 leading-relaxed mb-8 min-h-[400px] prose prose-sm max-w-none"
+            dangerouslySetInnerHTML={{ __html: content }}
+          />
+        ) : (
+          <div className="text-gray-700 leading-relaxed mb-8 min-h-[400px] flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-gray-400 mb-4">
+                <svg
+                  className="mx-auto h-16 w-16"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+              </div>
+              <p className="text-gray-500 text-lg font-medium">
+                No Privacy Policy Available
+              </p>
+              <p className="text-gray-400 text-sm mt-2">
+                Click the Edit button below to add Privacy Policy
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div className="mt-6 text-end">
+          <Button
+            onClick={handleEdit}
+            className=" bg-yellow-400 hover:bg-yellow-500 text-black font-medium rounded-full px-4"
+            disabled={isLoading}
+          >
+            {content ? "Edit" : "Add"} Privacy Policy
+          </Button>
+        </div>
       </div>
     </div>
   );

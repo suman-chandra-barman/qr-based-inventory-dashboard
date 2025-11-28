@@ -292,6 +292,25 @@ export const baseApi = createApi({
       }),
       invalidatesTags: ["inventory"],
     }),
+
+    //get privacy policy API
+    getPrivacyPolicy: builder.query({
+      query: () => ({
+        url: `/setting/get/privacy-policy`,
+        method: "GET",
+      }),
+      providesTags: ["inventory"],
+    }),
+
+    //update privacy policy API
+    updatePrivacyPolicy: builder.mutation({
+      query: (data) => ({
+        url: `/setting/update/privacy-policy`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ["inventory"],
+    }),
   }),
 });
 
@@ -321,4 +340,6 @@ export const {
   useDeleteAssignedCustomerMutation,
   useGetTermsConditionsQuery,
   useUpdateTermsConditionsMutation,
+  useGetPrivacyPolicyQuery,
+  useUpdatePrivacyPolicyMutation,
 } = baseApi;

@@ -3,31 +3,49 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { Button } from "../components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import BackButton from "@/components/buttons/BackButton";
+import {
+  useGetPrivacyPolicyQuery,
+  useUpdatePrivacyPolicyMutation,
+} from "../redux/api/api";
 
 const EditPrivacyPolicyPage: React.FC = () => {
   const navigate = useNavigate();
+  const { data, isLoading: loading } = useGetPrivacyPolicyQuery(undefined);
+  const [updatePrivacyPolicy, { isLoading: updating }] =
+    useUpdatePrivacyPolicyMutation();
   const [content, setContent] = useState("");
 
   useEffect(() => {
-    // Load existing content from localStorage
-    const savedContent = localStorage.getItem("privacyPolicyContent");
-    if (savedContent) {
-      setContent(savedContent);
-    } else {
-      // Set default content if no saved content exists
-      const defaultContent = `Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestiae unde doloribus voluptates voluptas explicabo nulla magnam exercitationem ducimus alias expedita quam soluta aspernatur quisquam, quibusdam, quia nesciunt tempora? Unde exercitationem, magnam aliquid placeat quas adipisci odio consequatur, accusamus officiis suscipit saepe similique. Perferendis ut illum nam rem. Maiores perspiciatis hic modi est repellat, quae iure provident suscipit qui quisquam quo nihil deleniti eos nisi commodi, sapiente cum? Ullam omnis tempora voluptate repellat cum beatae modi praesentium odio dolor, eos nisi possimus rem qui nihil ipsa quas est ad commodi molestias nam eius numquam perferendis, reiciendis nobis! Laboriosam exercitationem quibusdam velit eius natus! Ea hic reprehenderit veritatis doloremque maiores vero mollitia dolorum nulla sapiente, magni fugiat earum quo voluptatem corporis debitis animi magnam dolore assumenda aliquam odit laudantium.`;
-      setContent(defaultContent);
+    if (data?.data?.description) {
+      setContent(data.data.description);
+    } else if (!loading) {
+      setContent("");
     }
-  }, []);
+  }, [data, loading]);
 
-  const handleUpdate = () => {
-    // Save content to localStorage
-    localStorage.setItem("privacyPolicyContent", content);
-    // Navigate back to the view page
-    navigate("/settings/privacy-policy");
+  const handleUpdate = async () => {
+    if (!content.trim()) {
+      toast.error("Content cannot be empty");
+      return;
+    }
+
+    try {
+      const result = await updatePrivacyPolicy({
+        description: content,
+      }).unwrap();
+      if (result.success) {
+        toast.success("Privacy Policy updated successfully!");
+        navigate("/settings/privacy-policy");
+      } else {
+        toast.error(result.message || "Failed to update Privacy Policy");
+      }
+    } catch (error) {
+      console.error("Error updating privacy policy:", error);
+      toast.error("Failed to update Privacy Policy");
+    }
   };
-
 
   const modules = {
     toolbar: [
@@ -67,8 +85,8 @@ const EditPrivacyPolicyPage: React.FC = () => {
   ];
 
   return (
-    <div className="h-full bg-gray-50 p-6">
-      <div>
+    <div className="h-full bg-gray-50 p-6 ">
+      <div className="max-w-full">
         <div className="p-6 bg-white rounded-lg">
           <div className="flex items-center gap-3 mb-6">
             <BackButton />
@@ -77,24 +95,43 @@ const EditPrivacyPolicyPage: React.FC = () => {
             </h2>
           </div>
 
-          <div className="mb-6">
-            <ReactQuill
-              theme="snow"
-              value={content}
-              onChange={setContent}
-              modules={modules}
-              formats={formats}
-              className="mb-6"
-              style={{ minHeight: "400px" }}
-            />
-          </div>
+          {loading ? (
+            <div className="mb-6 flex items-center justify-center h-[500px]">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                <p>Loading...</p>
+              </div>
+            </div>
+          ) : (
+            <div className="mb-6">
+              <style>{`
+                .quill-editor-container .ql-container {
+                  height: 480px;
+                  font-size: 14px;
+                }
+                .quill-editor-container .ql-editor {
+                  height: 100%;
+                  overflow-y: auto;
+                }
+              `}</style>
+              <ReactQuill
+                theme="snow"
+                value={content}
+                onChange={setContent}
+                modules={modules}
+                formats={formats}
+                className="quill-editor-container"
+              />
+            </div>
+          )}
 
-          <div className="flex justify-end">
+          <div className="flex justify-end mt-4">
             <Button
               onClick={handleUpdate}
-              className="w-52 bg-yellow-400 hover:bg-yellow-500 text-black font-medium h-12 rounded-full"
+              className="w-30 bg-yellow-400 hover:bg-yellow-500 text-black font-medium rounded-full"
+              disabled={loading || updating}
             >
-              Update
+              {updating ? "Updating..." : "Update"}
             </Button>
           </div>
         </div>
