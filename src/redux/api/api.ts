@@ -272,6 +272,26 @@ export const baseApi = createApi({
       }),
       invalidatesTags: ["assignedProducts"],
     }),
+
+    ///----------------- Setting Related APIs -----------------///
+    //get terms conditions API
+    getTermsConditions: builder.query({
+      query: () => ({
+        url: `/setting/get/terms-conditions`,
+        method: "GET",
+      }),
+      providesTags: ["inventory"],
+    }),
+
+    //update terms conditions API
+    updateTermsConditions: builder.mutation({
+      query: (data) => ({
+        url: `/setting/update/terms-conditions`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ["inventory"],
+    }),
   }),
 });
 
@@ -299,4 +319,6 @@ export const {
   useGetEarningChartDataQuery,
   useGetAssignedCustomersQuery,
   useDeleteAssignedCustomerMutation,
+  useGetTermsConditionsQuery,
+  useUpdateTermsConditionsMutation,
 } = baseApi;

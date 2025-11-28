@@ -5,46 +5,25 @@ import { Button } from "../components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import BackButton from "@/components/buttons/BackButton";
-
-const baseUrl = import.meta.env.VITE_API_BASE_URL;
+import {
+  useGetTermsConditionsQuery,
+  useUpdateTermsConditionsMutation,
+} from "../redux/api/api";
 
 const EditTermsConditionPage: React.FC = () => {
   const navigate = useNavigate();
+  const { data, isLoading: loading } = useGetTermsConditionsQuery(undefined);
+  const [updateTermsConditions, { isLoading: updating }] =
+    useUpdateTermsConditionsMutation();
   const [content, setContent] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
-    fetchTermsCondition();
-  }, []);
-
-  const fetchTermsCondition = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`${baseUrl}/api/v1/setting/get/terms`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-
-      const result = await response.json();
-      console.log("Terms & Condition response:", result);
-
-      if (response.ok && result.success && result.data?.description) {
-        setContent(result.data.description);
-      } else {
-        // Use default content if API fails
-        const defaultContent = `Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestiae unde doloribus voluptates voluptas explicabo nulla magnam exercitationem ducimus alias expedita quam soluta aspernatur quisquam, quibusdam, quia nesciunt tempora? Unde exercitationem, magnam aliquid placeat quas adipisci odio consequatur, accusamus officiis suscipit saepe similique. Perferendis ut illum nam rem. Maiores perspiciatis hic modi est repellat, quae iure provident suscipit qui quisquam quo nihil deleniti eos nisi commodi, sapiente cum? Ullam omnis tempora voluptate repellat cum beatae modi praesentium odio dolor, eos nisi possimus rem qui nihil ipsa quas est ad commodi molestias nam eius numquam perferendis, reiciendis nobis! Laboriosam exercitationem quibusdam velit eius natus! Ea hic reprehenderit veritatis doloremque maiores vero mollitia dolorum nulla sapiente, magni fugiat earum quo voluptatem corporis debitis animi magnam dolore assumenda aliquam odit laudantium.`;
-        setContent(defaultContent);
-      }
-    } catch (error) {
-      console.error("Error fetching terms & condition:", error);
-      toast.error("Failed to load Terms & Condition");
-    } finally {
-      setLoading(false);
+    if (data?.data?.description) {
+      setContent(data.data.description);
+    } else if (!loading) {
+      setContent("");
     }
-  };
+  }, [data, loading]);
 
   const handleUpdate = async () => {
     if (!content.trim()) {
@@ -52,23 +31,11 @@ const EditTermsConditionPage: React.FC = () => {
       return;
     }
 
-    setUpdating(true);
     try {
-      const response = await fetch(`${baseUrl}/api/v1/setting/update/terms`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          description: content,
-        }),
-      });
-
-      const result = await response.json();
-      console.log("Update response:", result);
-
-      if (response.ok && result.success) {
+      const result = await updateTermsConditions({
+        description: content,
+      }).unwrap();
+      if (result.success) {
         toast.success("Terms & Condition updated successfully!");
         navigate("/settings/terms-condition");
       } else {
@@ -77,11 +44,8 @@ const EditTermsConditionPage: React.FC = () => {
     } catch (error) {
       console.error("Error updating terms & condition:", error);
       toast.error("Failed to update Terms & Condition");
-    } finally {
-      setUpdating(false);
     }
   };
-
 
   const modules = {
     toolbar: [
@@ -121,8 +85,8 @@ const EditTermsConditionPage: React.FC = () => {
   ];
 
   return (
-    <div className="h-full bg-gray-50 p-6">
-      <div>
+    <div className="h-full bg-gray-50 p-6 ">
+      <div className="max-w-full">
         <div className="p-6 bg-white rounded-lg">
           <div className="flex items-center gap-3 mb-6">
             <BackButton />
@@ -132,7 +96,7 @@ const EditTermsConditionPage: React.FC = () => {
           </div>
 
           {loading ? (
-            <div className="mb-6 flex items-center justify-center min-h-[400px]">
+            <div className="mb-6 flex items-center justify-center h-[500px]">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
                 <p>Loading...</p>
@@ -140,22 +104,31 @@ const EditTermsConditionPage: React.FC = () => {
             </div>
           ) : (
             <div className="mb-6">
+              <style>{`
+                .quill-editor-container .ql-container {
+                  height: 480px;
+                  font-size: 14px;
+                }
+                .quill-editor-container .ql-editor {
+                  height: 100%;
+                  overflow-y: auto;
+                }
+              `}</style>
               <ReactQuill
                 theme="snow"
                 value={content}
                 onChange={setContent}
                 modules={modules}
                 formats={formats}
-                className="mb-6"
-                style={{ minHeight: "400px" }}
+                className="quill-editor-container"
               />
             </div>
           )}
 
-          <div className="flex justify-end">
+          <div className="flex justify-end mt-4">
             <Button
               onClick={handleUpdate}
-              className="w-52 bg-yellow-400 hover:bg-yellow-500 text-black font-medium h-12 rounded-full"
+              className="w-30 bg-yellow-400 hover:bg-yellow-500 text-black font-medium rounded-full"
               disabled={loading || updating}
             >
               {updating ? "Updating..." : "Update"}
