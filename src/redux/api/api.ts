@@ -13,7 +13,7 @@ export const baseApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["inventory", "notifications"],
+  tagTypes: ["inventory", "notifications", "assignedProducts"],
   endpoints: (builder) => ({
     //user registration API
     getUserRegister: builder.query({
@@ -253,6 +253,25 @@ export const baseApi = createApi({
       }),
       providesTags: ["inventory"],
     }),
+
+    ///----------------- Assign Product Related APIs -----------------///
+    //get all assigned customers for a product API
+    getAssignedCustomers: builder.query({
+      query: (productId) => ({
+        url: `/assign-product/get-all-data/${productId}`,
+        method: "GET",
+      }),
+      providesTags: ["assignedProducts"],
+    }),
+
+    //delete assigned customer API
+    deleteAssignedCustomer: builder.mutation({
+      query: (assignId) => ({
+        url: `/assign-product/delete-assign-product/${assignId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["assignedProducts"],
+    }),
   }),
 });
 
@@ -278,4 +297,6 @@ export const {
   useGetAllUsersQuery,
   useGetDashboardStatisticsQuery,
   useGetEarningChartDataQuery,
+  useGetAssignedCustomersQuery,
+  useDeleteAssignedCustomerMutation,
 } = baseApi;

@@ -12,7 +12,6 @@ export interface Product {
   updatedAt?: string;
   image: string;
   des?: string;
-
 }
 
 export interface Customer {
@@ -132,6 +131,42 @@ export interface AssignedCustomer {
   purchases?: number;
   address?: string;
   productId: string;
+}
+
+export interface AssignedProductUser {
+  _id: string;
+  name: string;
+  email: string;
+  image?: string;
+}
+
+export interface AssignedProductData {
+  _id: string;
+  productId: {
+    _id: string;
+    category: string;
+    name: string;
+    image: string;
+    price: string;
+    size: string;
+    qrId: string;
+  };
+  userId: AssignedProductUser;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AssignedCustomersResponse {
+  success: boolean;
+  message: string;
+  data: {
+    assignProduct: AssignedProductData[];
+    meta: {
+      page: number;
+      limit: number;
+      total: number;
+    };
+  };
 }
 
 export interface Notification {

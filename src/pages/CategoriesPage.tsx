@@ -1,5 +1,5 @@
 import { Plus, Loader2 } from "lucide-react";
-import ProductCard from "../components/cards/ProductCard";
+import ProductCard from "../components/cards/CategoryCard";
 import { useState } from "react";
 import { Button } from "../components/ui/button";
 import { Pagination } from "@/components/pagination/Pagination";
@@ -157,26 +157,23 @@ const CategoriesPage = () => {
 
   return (
     <div className="p-6 bg-gray-50">
+      <h1 className="text-2xl font-bold text-gray-900 mb-2">Categories</h1>
       {/* Search and Category Tabs */}
-      <div className="py-4 flex justify-between items-center">
-        <div className="flex items-center gap-4 mb-4">
-          <div>
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <span>Dashboard</span>
-              <span>›</span>
-              <span className="text-blue-600">Categories</span>
-            </div>
+      <div className="pb-4 flex justify-between items-center">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <span>Dashboard</span>
+            <span>›</span>
+            <span className="text-blue-600">Categories</span>
           </div>
         </div>
 
-        <div className="flex gap-2">
-          <Button
-            onClick={() => setShowAddModal(true)}
-            className="bg-[#FFD700] text-[#003366] hover:bg-amber-400 rounded-full"
-          >
-            Add Category <Plus className="w-4 h-4" />
-          </Button>
-        </div>
+        <Button
+          onClick={() => setShowAddModal(true)}
+          className="bg-[#FFD700] text-[#003366] hover:bg-amber-400 rounded-full"
+        >
+          Add Category <Plus className="w-4 h-4" />
+        </Button>
       </div>
 
       {isLoading ? (

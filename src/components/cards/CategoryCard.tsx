@@ -12,10 +12,8 @@ interface ProductCardProps {
   className?: string;
 }
 
-export function ProductCard({
-  id,
+function CategoryCard({
   name,
-  price,
   image,
   onClick,
   onEdit,
@@ -40,9 +38,6 @@ export function ProductCard({
           <h3 className="text-sm font-medium text-gray-900 line-clamp-2 leading-tight">
             {name}
           </h3>
-          <p className="text-sm text-gray-500 font-medium">
-            ${price.toFixed(2)}
-          </p>
         </div>
         {onEdit && (
           <Button
@@ -62,4 +57,4 @@ export function ProductCard({
   );
 }
 
-export default ProductCard;
+export default CategoryCard;

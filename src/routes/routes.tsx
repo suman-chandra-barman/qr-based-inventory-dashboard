@@ -20,7 +20,7 @@ import { ChangePasswordPage } from "@/pages/ChangePasswordPage";
 import TermsConditionPage from "@/pages/TermsConditionPage";
 import EditTermsConditionPage from "@/pages/EditTermsConditionPage";
 import PrivacyPolicyPage from "@/pages/PrivacyPolicyPage";
-import Assign from "@/pages/Assign";
+import Assign from "@/pages/AssignPage";
 
 const router = createBrowserRouter([
   {
