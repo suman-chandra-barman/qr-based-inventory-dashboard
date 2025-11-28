@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { ArrowLeft, Eye, EyeOff, Lock } from "lucide-react";
+import {  Eye, EyeOff, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -17,6 +17,7 @@ import {
 import { useNavigate } from "react-router";
 import { ForgotPasswordModal } from "@/components/modals/ForgotPasswordModal";
 import { useChangePasswordMutation } from "@/redux/api/api";
+import BackButton from "@/components/buttons/BackButton";
 
 const changePasswordSchema = z
   .object({
@@ -71,13 +72,6 @@ export function ChangePasswordPage() {
     }
   };
 
-  const handleBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate("/");
-    }
-  };
 
   return (
     <div className=" min-h-screen bg-gray-50 p-4">
@@ -85,14 +79,7 @@ export function ChangePasswordPage() {
         {/* Main Content */}
         <div className="bg-white rounded-lg border p-6 ">
           <div className="flex items-center gap-3 mb-6">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-0 h-auto mr-3"
-              onClick={handleBack}
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
+             <BackButton />
             <h1 className="text-xl font-semibold text-gray-900">
               Change Password
             </h1>

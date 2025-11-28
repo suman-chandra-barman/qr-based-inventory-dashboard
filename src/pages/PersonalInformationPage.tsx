@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, User, Mail, Phone, Edit } from "lucide-react";
+import {  User, Mail, Phone, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import { toast } from "sonner";
+import BackButton from "@/components/buttons/BackButton";
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
 export default function PersonalInformationPage() {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState({
     name: "",
@@ -37,10 +37,11 @@ export default function PersonalInformationPage() {
 
       if (response.ok && result.success && result.data) {
         const imageUrl = result.data.image || result.data.profileImage || "";
-        const fullImageUrl = imageUrl && !imageUrl.startsWith('http') 
-          ? `${baseUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}` 
-          : imageUrl;
-        
+        const fullImageUrl =
+          imageUrl && !imageUrl.startsWith("http")
+            ? `${baseUrl}${imageUrl.startsWith("/") ? "" : "/"}${imageUrl}`
+            : imageUrl;
+
         setUserData({
           name: result.data.name || "",
           email: result.data.email || "",
@@ -58,27 +59,14 @@ export default function PersonalInformationPage() {
     }
   };
 
-  const handleBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate("/");
-    }
-  };
+
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="p-6">
         {/* Header */}
         <div className="flex items-center gap-3 mb-8 border p-3 bg-white rounded-xl">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="p-0 h-auto mr-3"
-            onClick={handleBack}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
+         <BackButton />
           <h1 className="text-lg font-medium text-gray-900">
             Personal Information
           </h1>
@@ -93,71 +81,73 @@ export default function PersonalInformationPage() {
               </div>
             </div>
           ) : (
-          <div className="flex gap-4 items-center space-y-6">
-            {/* Profile Image */}
-            <div className="bg-white p-8 rounded-lg shadow-sm">
-              <div className="relative">
-                <Avatar className="h-24 w-24">
-                  <AvatarImage
-                    src={userData.profileImage || "/placeholder.svg"}
-                    alt={userData.name}
-                    className="object-cover"
+            <div className="flex gap-4 items-center space-y-6">
+              {/* Profile Image */}
+              <div className="bg-white p-8 rounded-lg shadow-sm flex-shrink-0">
+                <div className="relative grid place-items-center space-y-4">
+                  <Avatar className="h-20 w-20">
+                    <AvatarImage
+                      src={userData.profileImage || "/placeholder.svg"}
+                      alt={userData.name}
+                      className="object-cover"
+                    />
+                    <AvatarFallback className="text-2xl">
+                      {userData.name
+                        ? userData.name.charAt(0).toUpperCase()
+                        : "U"}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  {/* User Name */}
+                  <h2 className="text-xl font-medium text-gray-900 text-center">
+                    {userData.name}
+                  </h2>
+                </div>
+              </div>
+
+              {/* Form Fields */}
+              <div className="w-full space-y-4">
+                {/* Name Field */}
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    value={userData.name}
+                    readOnly
+                    className="w-full pl-10 bg-gray-50 border-gray-200 text-gray-600 cursor-default"
                   />
-                  <AvatarFallback className="text-2xl">
-                    {userData.name ? userData.name.charAt(0).toUpperCase() : "U"}
-                  </AvatarFallback>
-                </Avatar>
-              </div>
+                </div>
 
-              {/* User Name */}
-              <h2 className="text-xl font-medium text-gray-900 text-center">
-                {userData.name}
-              </h2>
-            </div>
+                {/* Email Field */}
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    value={userData.email}
+                    readOnly
+                    className="w-full pl-10 bg-gray-50 border-gray-200 text-gray-600 cursor-default"
+                  />
+                </div>
 
-            {/* Form Fields */}
-            <div className="w-full space-y-4">
-              {/* Name Field */}
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  value={userData.name}
-                  readOnly
-                  className="w-full pl-10 bg-gray-50 border-gray-200 text-gray-600 cursor-default"
-                />
-              </div>
-
-              {/* Email Field */}
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  value={userData.email}
-                  readOnly
-                  className="w-full pl-10 bg-gray-50 border-gray-200 text-gray-600 cursor-default"
-                />
-              </div>
-
-              {/* Phone Field */}
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  value={userData.phone}
-                  readOnly
-                  className="w-full pl-10 bg-gray-50 border-gray-200 text-gray-600 cursor-default"
-                />
-              </div>
-              {/* Edit Profile Button */}
-              <div className="w-full pt-4 text-right">
-                <Link
-                  to="/settings/personal-information/edit"
-                  className="block"
-                >
-                  <Button className=" bg-yellow-400 hover:bg-yellow-500 text-black font-medium">
-                    Edit Profile
-                    <Edit className="inline-block ml-2 h-4 w-4 text-gray-500" />
-                  </Button>
-                </Link>
-              </div>
+                {/* Phone Field */}
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    value={userData.phone}
+                    readOnly
+                    className="w-full pl-10 bg-gray-50 border-gray-200 text-gray-600 cursor-default"
+                  />
+                </div>
+                {/* Edit Profile Button */}
+                <div className="w-full pt-4 text-right">
+                  <Link
+                    to="/settings/personal-information/edit"
+                    className="block"
+                  >
+                    <Button className=" bg-yellow-400 hover:bg-yellow-500 text-black font-medium">
+                      Edit Profile
+                      <Edit className="inline-block ml-2 h-4 w-4 text-gray-500" />
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
           )}

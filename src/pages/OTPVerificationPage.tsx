@@ -1,12 +1,12 @@
 import type React from "react";
 import { useState, useRef, useEffect } from "react";
-import { ArrowLeft } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { useDispatch } from "react-redux";
 import signinImage from "@/assets/signin.png";
 import { useVerifyEmailMutation } from "@/redux/api/api";
 import { setUser } from "@/redux/features/auth/authSlice";
+import BackButton from "@/components/buttons/BackButton";
 
 interface OTPVerificationPageProps {
   email?: string;
@@ -44,13 +44,6 @@ const OTPVerificationPage: React.FC<OTPVerificationPageProps> = ({
     }
   }, [resendOtpPassword]);
 
-  const handleBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate("/");
-    }
-  };
 
   const handleOTPChange = (index: number, value: string) => {
     // Only allow single digit
@@ -210,12 +203,7 @@ const OTPVerificationPage: React.FC<OTPVerificationPageProps> = ({
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
         <div className="bg-white rounded-lg border border-gray-200 p-8 shadow-sm">
           <div className="flex items-center gap-3 mb-6">
-            <button
-              onClick={handleBack}
-              className="h-auto hover:bg-gray-100 rounded-full p-2 transition-colors"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </button>
+             <BackButton />
             <h2 className="text-xl font-semibold text-gray-900">Verify OTP</h2>
           </div>
 

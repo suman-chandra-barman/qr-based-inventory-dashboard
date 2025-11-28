@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // Use `useNavigate` for React Router
-import { ArrowLeft, User, Phone, Camera, Save } from "lucide-react";
+import { User, Phone, Camera, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { useDispatch } from "react-redux";
 import { updateUser } from "@/redux/features/auth/authSlice";
+import BackButton from "@/components/buttons/BackButton";
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -71,10 +72,11 @@ const EditPersonalInformationPage: React.FC = () => {
 
       if (response.ok && result.success && result.data) {
         const imageUrl = result.data.image || result.data.profileImage || "";
-        const fullImageUrl = imageUrl && !imageUrl.startsWith('http') 
-          ? `${baseUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}` 
-          : imageUrl;
-        
+        const fullImageUrl =
+          imageUrl && !imageUrl.startsWith("http")
+            ? `${baseUrl}${imageUrl.startsWith("/") ? "" : "/"}${imageUrl}`
+            : imageUrl;
+
         const data = {
           name: result.data.name || "",
           email: result.data.email || "",
@@ -94,13 +96,6 @@ const EditPersonalInformationPage: React.FC = () => {
       toast.error("Failed to load profile");
     } finally {
       setLoading(false);
-    }
-  };
-  const handleBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate("/");
     }
   };
 
@@ -129,7 +124,7 @@ const EditPersonalInformationPage: React.FC = () => {
       const formData = new FormData();
       formData.append("name", data.name);
       formData.append("phone", data.phone);
-      
+
       if (imageFile) {
         formData.append("image", imageFile);
       }
@@ -151,17 +146,18 @@ const EditPersonalInformationPage: React.FC = () => {
           name: data.name,
           phone: data.phone,
         };
-        
+
         if (result.data?.image) {
           const imageUrl = result.data.image;
-          const fullImageUrl = imageUrl && !imageUrl.startsWith('http') 
-            ? `${baseUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}` 
-            : imageUrl;
+          const fullImageUrl =
+            imageUrl && !imageUrl.startsWith("http")
+              ? `${baseUrl}${imageUrl.startsWith("/") ? "" : "/"}${imageUrl}`
+              : imageUrl;
           updatedData.image = fullImageUrl;
         }
-        
+
         dispatch(updateUser(updatedData));
-        
+
         toast.success("Profile updated successfully!");
         navigate("/settings/personal-information");
       } else {
@@ -179,14 +175,7 @@ const EditPersonalInformationPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="p-6">
         <div className="flex items-center gap-3 mb-8 border p-3 bg-white rounded-xl">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="p-0 h-auto mr-3"
-            onClick={handleBack}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
+          <BackButton />
           <h1 className="text-lg font-medium text-gray-900">
             Personal Information
           </h1>
@@ -209,7 +198,9 @@ const EditPersonalInformationPage: React.FC = () => {
                           className="object-cover"
                         />
                         <AvatarFallback className="text-lg">
-                          {userData.name ? userData.name.charAt(0).toUpperCase() : "U"}
+                          {userData.name
+                            ? userData.name.charAt(0).toUpperCase()
+                            : "U"}
                         </AvatarFallback>
                       </Avatar>
                       <button

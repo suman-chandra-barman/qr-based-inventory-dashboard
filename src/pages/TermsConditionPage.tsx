@@ -1,8 +1,9 @@
-import { ArrowLeft } from "lucide-react";
+
 import { Button } from "../components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import BackButton from "@/components/buttons/BackButton";
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -49,26 +50,13 @@ function TermsConditionPage() {
     navigate("/settings/terms-condition/edit");
   };
 
-  const handleBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate("/");
-    }
-  };
+
 
   return (
     <div className="h-full bg-gray-50 p-6">
       <div className="p-6 bg-white rounded-lg">
         <div className="flex items-center gap-3 mb-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="p-0 h-auto"
-            onClick={handleBack}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
+          <BackButton />
           <h2 className="text-xl font-semibold text-gray-900">
             Terms & Condition
           </h2>

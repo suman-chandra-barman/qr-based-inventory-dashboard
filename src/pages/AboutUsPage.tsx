@@ -1,7 +1,7 @@
-import { ArrowLeft } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import BackButton from "@/components/buttons/BackButton";
 
 function AboutUsPage() {
   const navigate = useNavigate();
@@ -22,18 +22,13 @@ function AboutUsPage() {
     navigate('/settings/about-us/edit');
   };
 
-  const handleBack = () => {
-    navigate('/settings');
-  };
 
   return (
     <div className="h-full bg-gray-50 p-6">
       <div>
         <div className="p-6 bg-white rounded-lg">
           <div className="flex items-center gap-3 mb-6">
-            <Button variant="ghost" size="sm" className="p-0 h-auto" onClick={handleBack}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
+             <BackButton />
             <h2 className="text-xl font-semibold text-gray-900">About Us</h2>
           </div>
           <div className="text-gray-700 leading-relaxed mb-8 min-h-[400px]">

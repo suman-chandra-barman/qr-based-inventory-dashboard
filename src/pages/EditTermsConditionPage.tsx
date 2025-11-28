@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-import { ArrowLeft } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import BackButton from "@/components/buttons/BackButton";
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -82,13 +82,6 @@ const EditTermsConditionPage: React.FC = () => {
     }
   };
 
-  const handleBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate("/");
-    }
-  };
 
   const modules = {
     toolbar: [
@@ -132,14 +125,7 @@ const EditTermsConditionPage: React.FC = () => {
       <div>
         <div className="p-6 bg-white rounded-lg">
           <div className="flex items-center gap-3 mb-6">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-0 h-auto"
-              onClick={handleBack}
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
+            <BackButton />
             <h2 className="text-xl font-semibold text-gray-900">
               Edit Terms & Condition
             </h2>

@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { ArrowLeft, Mail } from "lucide-react";
+import {  Mail } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router";
 import signinImage from "@/assets/signin.png";
 import { useForgotPasswordMutation } from "@/redux/api/api";
+import BackButton from "@/components/buttons/BackButton";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -46,13 +47,6 @@ export default function ForgotPasswordPage() {
       toast.error(error?.data?.message || "Failed to send OTP. Please try again.");
     }
   };
-  const handleBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate("/");
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -76,14 +70,7 @@ export default function ForgotPasswordPage() {
           <div className="bg-white rounded-2xl shadow-lg p-8">
             {/* Header */}
             <div className="flex items-center mb-8">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-0 h-auto mr-3"
-                onClick={handleBack}
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
+             <BackButton />
               <h1 className="text-2xl font-semibold text-gray-900">
                 Forgot Password
               </h1>

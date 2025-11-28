@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { ArrowLeft, Eye, EyeOff, Lock } from "lucide-react";
+import {  Eye, EyeOff, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import signinImage from "@/assets/signin.png";
 import { useResetPasswordMutation } from "@/redux/api/api";
+import BackButton from "@/components/buttons/BackButton";
 
 const resetPasswordSchema = z
   .object({
@@ -67,13 +68,6 @@ export function ResetPasswordPage() {
     }
   };
 
-    const handleBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate("/");
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center p-4">
@@ -94,14 +88,7 @@ export function ResetPasswordPage() {
         <div className="bg-white rounded-lg border border-gray-200 p-8 shadow-sm w-full max-w-md">
           {/* Header */}
           <div className="flex items-center mb-8">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-0 h-auto mr-3"
-              onClick={handleBack}
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
+             <BackButton />
             <h1 className="text-2xl font-semibold text-gray-900">
               Reset Password
             </h1>
