@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import { Checkbox } from "../ui/checkbox";
 import { Button } from "../ui/button";
 import { ArrowUpRight, Trash2, Loader2, Edit } from "lucide-react";
@@ -8,6 +7,7 @@ import { toast } from "sonner";
 import { Pagination } from "../pagination/Pagination";
 import { DetailsModal } from "../modals/DetailsModal";
 import { AddProductModal } from "../modals/AddProductModal";
+import AssignModal from "@/components/modals/AssignModal";
 import {
   useGetAllProductsQuery,
   useDeleteProductMutation,
@@ -21,13 +21,14 @@ export function ProductTable({
   selectedCategory,
   onCategoryChange,
 }: ProductTableProps) {
-  const navigate = useNavigate();
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [productToEdit, setProductToEdit] = useState<Product | null>(null);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [assignProductId, setAssignProductId] = useState<string | null>(null);
   const checkboxRef = useRef<HTMLInputElement>(null);
 
   const itemsPerPage = 10;
@@ -374,13 +375,14 @@ export function ProductTable({
                         </Button>
                         <Button
                           size="sm"
-                          onClick={() =>
-                            navigate(`/assign?productId=${product.id}`)
-                          }
+                          onClick={() => {
+                            setAssignProductId(product.id);
+                            setIsAssignModalOpen(true);
+                          }}
                           className="bg-[#FFD700] text-[#003366] hover:bg-amber-400 rounded-full px-4"
                           title="Assign product"
                         >
-                          Add New Assign
+                          Assign Product
                         </Button>
                       </div>
                     </td>
@@ -434,6 +436,18 @@ export function ProductTable({
               }
             : undefined
         }
+      />
+      {/* Assign Modal */}
+      <AssignModal
+        productId={assignProductId}
+        open={isAssignModalOpen}
+        onOpenChange={(open) => {
+          setIsAssignModalOpen(open);
+          if (!open) setAssignProductId(null);
+        }}
+        onAssigned={() => {
+          refetch();
+        }}
       />
     </div>
   );
