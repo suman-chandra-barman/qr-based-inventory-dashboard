@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
-import { Trash2, Loader2, ArrowUpRight, Download } from "lucide-react";
+import { Trash2, Loader2, ArrowUpRight } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "../components/ui/button";
 import { Checkbox } from "../components/ui/checkbox";
@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/dialog";
 import { useGetAllUsersQuery } from "@/redux/api/api";
 import type { User } from "@/types";
-import jsPDF from "jspdf";
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -24,7 +23,7 @@ export default function CustomersPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<User | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const itemsPerPage = 6;
+  const itemsPerPage = 10;
 
   // Fetch users from API
   const { data: usersData, isLoading } = useGetAllUsersQuery({
@@ -85,73 +84,6 @@ export default function CustomersPage() {
     setSelectedCustomer(null);
   };
 
-  const handleDownloadPDF = () => {
-    if (users.length === 0) {
-      toast.error("No data to download");
-      return;
-    }
-
-    const doc = new jsPDF();
-
-    // Add title
-    doc.setFontSize(18);
-    doc.text("Customer List", 14, 20);
-
-    // Add date
-    doc.setFontSize(10);
-    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 28);
-
-    // Add table headers
-    doc.setFontSize(12);
-    let yPos = 40;
-
-    users.forEach((user, index) => {
-      if (yPos > 270) {
-        doc.addPage();
-        yPos = 20;
-      }
-
-      doc.setFontSize(11);
-      doc.setFont("helvetica", "bold");
-      doc.text(`Customer ${index + 1}`, 14, yPos);
-      yPos += 6;
-
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "normal");
-      doc.text(`ID: ${user._id}`, 14, yPos);
-      yPos += 6;
-      doc.text(`Name: ${user.name}`, 14, yPos);
-      yPos += 6;
-      doc.text(`Email: ${user.email}`, 14, yPos);
-      yPos += 6;
-      doc.text(`Phone: ${user.phone || "N/A"}`, 14, yPos);
-      yPos += 6;
-      doc.text(
-        `Purchases: $${(user as any).purchases?.toFixed(2) || "0.00"}`,
-        14,
-        yPos
-      );
-      yPos += 6;
-      doc.text(`Address: ${(user as any).address || "N/A"}`, 14, yPos);
-      yPos += 6;
-      doc.text(
-        `Status: ${user.verified ? "Verified" : "Unverified"}`,
-        14,
-        yPos
-      );
-      yPos += 6;
-      doc.text(
-        `Joined: ${new Date(user.createdAt).toLocaleDateString()}`,
-        14,
-        yPos
-      );
-      yPos += 10;
-    });
-
-    doc.save(`customers_${new Date().toISOString().split("T")[0]}.pdf`);
-    toast.success("PDF downloaded successfully");
-  };
-
   const isAllSelected =
     users.length > 0 && selectedCustomers.length === users.length;
   const isIndeterminate =
@@ -174,14 +106,6 @@ export default function CustomersPage() {
                 <span className="text-blue-600">Customer</span>
               </div>
             </div>
-            <Button
-              onClick={handleDownloadPDF}
-              className="bg-[#FFD700] text-[#003366] hover:bg-amber-400 rounded-full"
-              disabled={isLoading || users.length === 0}
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Download PDF
-            </Button>
           </div>
 
           <div className="space-y-6">
@@ -458,107 +382,6 @@ export default function CustomersPage() {
                     )}
                   </p>
                 </div>
-              </div>
-
-              {/* Download Button in Modal */}
-              <div className="pt-4 border-t">
-                <Button
-                  onClick={() => {
-                    const doc = new jsPDF();
-
-                    // Add title
-                    doc.setFontSize(18);
-                    doc.text("Customer Details", 14, 20);
-
-                    // Add customer info
-                    let yPos = 35;
-                    doc.setFontSize(12);
-
-                    doc.setFont("helvetica", "bold");
-                    doc.text("Name:", 14, yPos);
-                    doc.setFont("helvetica", "normal");
-                    doc.text(selectedCustomer.name, 50, yPos);
-                    yPos += 10;
-
-                    doc.setFont("helvetica", "bold");
-                    doc.text("Email:", 14, yPos);
-                    doc.setFont("helvetica", "normal");
-                    doc.text(selectedCustomer.email, 50, yPos);
-                    yPos += 10;
-
-                    doc.setFont("helvetica", "bold");
-                    doc.text("Phone:", 14, yPos);
-                    doc.setFont("helvetica", "normal");
-                    doc.text(selectedCustomer.phone || "N/A", 50, yPos);
-                    yPos += 10;
-
-                    doc.setFont("helvetica", "bold");
-                    doc.text("Purchases:", 14, yPos);
-                    doc.setFont("helvetica", "normal");
-                    doc.text(
-                      `$${
-                        (selectedCustomer as any).purchases?.toFixed(2) ||
-                        "0.00"
-                      }`,
-                      50,
-                      yPos
-                    );
-                    yPos += 10;
-
-                    doc.setFont("helvetica", "bold");
-                    doc.text("Address:", 14, yPos);
-                    doc.setFont("helvetica", "normal");
-                    doc.text(
-                      (selectedCustomer as any).address || "N/A",
-                      50,
-                      yPos
-                    );
-                    yPos += 10;
-
-                    doc.setFont("helvetica", "bold");
-                    doc.text("Status:", 14, yPos);
-                    doc.setFont("helvetica", "normal");
-                    doc.text(
-                      selectedCustomer.verified ? "Verified" : "Unverified",
-                      50,
-                      yPos
-                    );
-                    yPos += 10;
-
-                    doc.setFont("helvetica", "bold");
-                    doc.text("Customer ID:", 14, yPos);
-                    doc.setFont("helvetica", "normal");
-                    doc.text(selectedCustomer._id, 50, yPos);
-                    yPos += 10;
-
-                    doc.setFont("helvetica", "bold");
-                    doc.text("Joined At:", 14, yPos);
-                    doc.setFont("helvetica", "normal");
-                    doc.text(
-                      new Date(selectedCustomer.createdAt).toLocaleDateString(
-                        "en-US",
-                        {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        }
-                      ),
-                      50,
-                      yPos
-                    );
-
-                    doc.save(
-                      `customer_${selectedCustomer._id}_${
-                        new Date().toISOString().split("T")[0]
-                      }.pdf`
-                    );
-                    toast.success("PDF downloaded successfully");
-                  }}
-                  className="w-full bg-[#FFD700] text-[#003366] hover:bg-amber-400 rounded-full"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Download PDF
-                </Button>
               </div>
             </div>
           )}
