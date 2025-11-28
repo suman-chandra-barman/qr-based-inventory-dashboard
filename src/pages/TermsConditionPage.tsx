@@ -66,10 +66,10 @@ function TermsConditionPage() {
         <div className="mt-6 text-end">
           <Button
             onClick={handleEdit}
-            className="w-32 bg-yellow-400 hover:bg-yellow-500 text-black font-medium rounded-full"
+            className="bg-yellow-400 hover:bg-yellow-500 text-black font-medium rounded-full px-6"
             disabled={isLoading}
           >
-            Edit
+            {content ? "Edit" : "Add"} Terms & Conditions
           </Button>
         </div>
       </div>
