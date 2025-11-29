@@ -6,6 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { useCreateCategoryMutation } from "@/redux/api/api";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { getErrorMessage } from "@/lib/utils";
 
 interface AddCategoryModalProps {
   open: boolean;
@@ -19,7 +21,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
   const [categoryName, setCategoryName] = useState("");
   const [categoryImage, setCategoryImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [createCategory, { isLoading }] = useCreateCategoryMutation();
+  const [createCategory, { isLoading, error }] = useCreateCategoryMutation();
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -55,8 +57,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
       setCategoryImage(null);
       setImagePreview(null);
     } catch (error) {
-      toast.error("Failed to create category");
-      console.error("Create category error:", error);
+      // Error is handled by the error state
     }
   };
 
@@ -74,6 +75,11 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
           <DialogTitle>Add New Category</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{getErrorMessage(error)}</AlertDescription>
+            </Alert>
+          )}
           <div className="space-y-2">
             <Label htmlFor="categoryName">Category Name</Label>
             <Input

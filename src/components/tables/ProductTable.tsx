@@ -105,8 +105,8 @@ export function ProductTable({
       );
       setSelectedProducts([]);
       refetch();
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to delete products");
+    } catch (error) {
+      // Error is now handled globally in the API
     }
   };
 
@@ -116,8 +116,8 @@ export function ProductTable({
       toast.success("Product deleted successfully");
       setSelectedProducts((prev) => prev.filter((id) => id !== productId));
       refetch();
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to delete product");
+    } catch (error) {
+      // Error is now handled globally in the API
     }
   };
 
@@ -150,8 +150,8 @@ export function ProductTable({
       setProductToEdit(null);
       setIsEditModalOpen(false);
       refetch();
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to update product");
+    } catch (error) {
+      // Error is now handled globally in the API
     }
   };
 

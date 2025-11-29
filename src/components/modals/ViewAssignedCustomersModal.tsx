@@ -72,8 +72,7 @@ export default function ViewAssignedCustomersModal({
       );
       refetch();
     } catch (error) {
-      console.error("Failed to delete assigned customer:", error);
-      toast.error("Failed to remove customer. Please try again.");
+      // Error is now handled globally in the API
     } finally {
       setDeletingId(null);
       setCustomerToDelete(null);

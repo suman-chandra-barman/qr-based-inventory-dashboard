@@ -42,8 +42,7 @@ const EditPrivacyPolicyPage: React.FC = () => {
         toast.error(result.message || "Failed to update Privacy Policy");
       }
     } catch (error) {
-      console.error("Error updating privacy policy:", error);
-      toast.error("Failed to update Privacy Policy");
+      // Error is now handled globally in the API
     }
   };
 

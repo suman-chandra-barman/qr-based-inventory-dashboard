@@ -123,7 +123,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
         await markAsRead("").unwrap();
         refetch();
       } catch (error) {
-        console.error("Failed to mark notifications as read:", error);
+        // Error is now handled globally in the API
       }
     }
   };
@@ -134,7 +134,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
       await markAsRead(id).unwrap();
       refetch();
     } catch (error) {
-      console.error("Failed to mark notification as read:", error);
+      // Error is now handled globally in the API
     } finally {
       setMarkingId(null);
     }
@@ -146,7 +146,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
       await markAsRead("").unwrap();
       refetch();
     } catch (error) {
-      console.error("Failed to mark all notifications as read:", error);
+      // Error is now handled globally in the API
     } finally {
       setMarkingId(null);
     }

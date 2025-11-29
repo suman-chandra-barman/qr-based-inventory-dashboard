@@ -42,8 +42,7 @@ const EditTermsConditionPage: React.FC = () => {
         toast.error(result.message || "Failed to update Terms & Condition");
       }
     } catch (error) {
-      console.error("Error updating terms & condition:", error);
-      toast.error("Failed to update Terms & Condition");
+      // Error is now handled globally in the API
     }
   };
 

@@ -38,8 +38,7 @@ const EditAboutUsPage: React.FC = () => {
         toast.error(result.message || "Failed to update About Us");
       }
     } catch (error) {
-      console.error("Error updating about us:", error);
-      toast.error("Failed to update About Us");
+      // Error is now handled globally in the API
     }
   };
 

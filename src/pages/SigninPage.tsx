@@ -22,6 +22,8 @@ import signinImage from "@/assets/signin.png";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/redux/features/auth/authSlice";
 import { useUserLoginMutation } from "@/redux/api/api";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { getErrorMessage } from "@/lib/utils";
 
 const signInSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -37,7 +39,7 @@ export default function SignInPage() {
   const dispatch = useDispatch();
 
   // RTK Query Login Mutation
-  const [userLogin, { isLoading }] = useUserLoginMutation();
+  const [userLogin, { isLoading, error }] = useUserLoginMutation();
 
   const form = useForm({
     resolver: zodResolver(signInSchema),
@@ -72,9 +74,8 @@ export default function SignInPage() {
       form.reset();
 
       navigate("/dashboard");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to sign in.");
+    } catch (error) {
+      // Error is handled by the error state
     }
   };
 
@@ -98,6 +99,12 @@ export default function SignInPage() {
             <div className="flex items-center mb-8">
               <h1 className="text-2xl font-semibold text-gray-900">Sign In</h1>
             </div>
+
+            {error && (
+              <Alert variant="destructive" className="mb-6">
+                <AlertDescription>{getErrorMessage(error)}</AlertDescription>
+              </Alert>
+            )}
 
             <Form {...form}>
               <form

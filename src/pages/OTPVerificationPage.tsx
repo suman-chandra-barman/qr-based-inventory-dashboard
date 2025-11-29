@@ -7,6 +7,8 @@ import signinImage from "@/assets/signin.png";
 import { useVerifyEmailMutation } from "@/redux/api/api";
 import { setUser } from "@/redux/features/auth/authSlice";
 import BackButton from "@/components/buttons/BackButton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { getErrorMessage } from "@/lib/utils";
 
 interface OTPVerificationPageProps {
   email?: string;
@@ -26,7 +28,8 @@ const OTPVerificationPage: React.FC<OTPVerificationPageProps> = ({
   const inputRefs = useRef<(HTMLInputElement | null)[]>(Array(6).fill(null));
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [verifyEmail] = useVerifyEmailMutation();
+  const [verifyEmail, { error }] =
+    useVerifyEmailMutation();
 
   // Initialize refs on mount
   useEffect(() => {
@@ -43,7 +46,6 @@ const OTPVerificationPage: React.FC<OTPVerificationPageProps> = ({
       return () => clearTimeout(timer);
     }
   }, [resendOtpPassword]);
-
 
   const handleOTPChange = (index: number, value: string) => {
     // Only allow single digit
@@ -147,14 +149,8 @@ const OTPVerificationPage: React.FC<OTPVerificationPageProps> = ({
       } else {
         navigate("/reset-password", { state: { email: emailFromState } });
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      console.error("Verification error:", error);
-      toast.error(error?.data?.message || "Invalid OTP", {
-        description: "Please check the code and try again.",
-      });
-      setOtp(new Array(6).fill(""));
-      inputRefs.current[0]?.focus();
+    } catch {
+      // Error is handled by the error state
     } finally {
       setIsVerifying(false);
     }
@@ -203,9 +199,15 @@ const OTPVerificationPage: React.FC<OTPVerificationPageProps> = ({
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
         <div className="bg-white rounded-lg border border-gray-200 p-8 shadow-sm">
           <div className="flex items-center gap-3 mb-6">
-             <BackButton />
+            <BackButton />
             <h2 className="text-xl font-semibold text-gray-900">Verify OTP</h2>
           </div>
+
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertDescription>{getErrorMessage(error)}</AlertDescription>
+            </Alert>
+          )}
 
           <p className="text-gray-600 mb-6">
             Please enter the OTP we have sent you in your email{" "}

@@ -6,12 +6,15 @@ import { Plus } from "lucide-react";
 import { AddProductModal } from "@/components/modals/AddProductModal";
 import { useCreateProductMutation } from "@/redux/api/api";
 import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { getErrorMessage } from "@/lib/utils";
 
 export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [showAddModal, setShowAddModal] = useState(false);
 
-  const [createProduct, { isLoading: creating }] = useCreateProductMutation();
+  const [createProduct, { isLoading: creating, error }] =
+    useCreateProductMutation();
 
   const getBreadcrumbCategory = () => {
     if (selectedCategory === "all") return "All Products";
@@ -37,8 +40,8 @@ export default function ProductsPage() {
       await createProduct(formData).unwrap();
       toast.success("Product created successfully");
       setShowAddModal(false);
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to create product");
+    } catch (error) {
+      // Error is handled by the error state
     }
   };
 
@@ -76,12 +79,19 @@ export default function ProductsPage() {
         onCategoryChange={setSelectedCategory}
       />
       {showAddModal && (
-        <AddProductModal
-          open={showAddModal}
-          onOpenChange={setShowAddModal}
-          onSave={handleCreateProduct}
-          isLoading={creating}
-        />
+        <>
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertDescription>{getErrorMessage(error)}</AlertDescription>
+            </Alert>
+          )}
+          <AddProductModal
+            open={showAddModal}
+            onOpenChange={setShowAddModal}
+            onSave={handleCreateProduct}
+            isLoading={creating}
+          />
+        </>
       )}
     </div>
   );

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import {  Eye, EyeOff, Lock } from "lucide-react";
+import { Eye, EyeOff, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,6 +18,8 @@ import { useNavigate } from "react-router-dom";
 import signinImage from "@/assets/signin.png";
 import { useResetPasswordMutation } from "@/redux/api/api";
 import BackButton from "@/components/buttons/BackButton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { getErrorMessage } from "@/lib/utils";
 
 const resetPasswordSchema = z
   .object({
@@ -38,7 +40,7 @@ export function ResetPasswordPage() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
-  const [resetPassword, { isLoading }] = useResetPasswordMutation();
+  const [resetPassword, { isLoading, error }] = useResetPasswordMutation();
 
   const form = useForm<ResetPasswordForm>({
     resolver: zodResolver(resetPasswordSchema),
@@ -53,7 +55,7 @@ export function ResetPasswordPage() {
         confirmPassword: data.confirmPassword,
         newPassword: data.newPassword,
       }).unwrap();
-      
+
       toast.success(res?.message || "Password Reset Successful", {
         description:
           "Your password has been successfully reset. You can now login with your new password.",
@@ -61,17 +63,14 @@ export function ResetPasswordPage() {
 
       form.reset();
       navigate("/");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      console.error("Reset password error:", error);
-      toast.error(error?.data?.message || "Failed to reset password. Please try again.");
+    } catch (error) {
+      // Error is handled by the error state
     }
   };
 
-
   return (
     <div className="min-h-screen bg-gray-50 flex items-center p-4">
-       {/* Left side - Illustration */}
+      {/* Left side - Illustration */}
       <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12">
         <div>
           <div className="flex items-center justify-center">
@@ -88,7 +87,7 @@ export function ResetPasswordPage() {
         <div className="bg-white rounded-lg border border-gray-200 p-8 shadow-sm w-full max-w-md">
           {/* Header */}
           <div className="flex items-center mb-8">
-             <BackButton />
+            <BackButton />
             <h1 className="text-2xl font-semibold text-gray-900">
               Reset Password
             </h1>
@@ -97,6 +96,12 @@ export function ResetPasswordPage() {
           <p className="text-gray-600 mb-6">
             Create a new password for your account
           </p>
+
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertDescription>{getErrorMessage(error)}</AlertDescription>
+            </Alert>
+          )}
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">

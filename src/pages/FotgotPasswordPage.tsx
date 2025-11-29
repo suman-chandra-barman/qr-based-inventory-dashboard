@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import {  Mail } from "lucide-react";
+import { Mail } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +16,8 @@ import { useNavigate } from "react-router";
 import signinImage from "@/assets/signin.png";
 import { useForgotPasswordMutation } from "@/redux/api/api";
 import BackButton from "@/components/buttons/BackButton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { getErrorMessage } from "@/lib/utils";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -25,7 +27,7 @@ type TForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPasswordPage() {
   const navigate = useNavigate();
-  const [forgotPassword, { isLoading }] = useForgotPasswordMutation();
+  const [forgotPassword, { isLoading, error }] = useForgotPasswordMutation();
 
   const form = useForm({
     resolver: zodResolver(forgotPasswordSchema),
@@ -37,13 +39,12 @@ export default function ForgotPasswordPage() {
   const onSubmit = async (data: TForgotPasswordFormData) => {
     try {
       const res = await forgotPassword({ email: data.email }).unwrap();
-      
+
       toast.success(res?.message || "OTP sent successfully!");
       form.reset();
       navigate("/otp-verification", { state: { email: data.email } });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to send OTP. Please try again.");
+    } catch (error) {
+      // Error is handled by the error state
     }
   };
 
@@ -69,11 +70,18 @@ export default function ForgotPasswordPage() {
           <div className="bg-white rounded-2xl shadow-lg p-8">
             {/* Header */}
             <div className="flex items-center mb-8">
-             <BackButton />
+              <BackButton />
               <h1 className="text-2xl font-semibold text-gray-900">
                 Forgot Password
               </h1>
             </div>
+
+            {error && (
+              <Alert variant="destructive" className="mb-6">
+                <AlertDescription>{getErrorMessage(error)}</AlertDescription>
+              </Alert>
+            )}
+
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
