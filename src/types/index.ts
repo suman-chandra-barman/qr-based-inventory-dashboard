@@ -73,7 +73,12 @@ export interface PaginationProps {
 }
 
 export interface OrderItem {
-  productId: string | null;
+  productId: {
+    _id: string;
+    name: string;
+    image: string;
+    size: string;
+  } | null;
   quantity: number;
   price: number;
 }
