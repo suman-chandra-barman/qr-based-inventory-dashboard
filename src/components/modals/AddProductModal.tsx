@@ -83,7 +83,6 @@ export function AddProductModal({
       formData.size &&
       formData.qrId
     ) {
-      console.log("formData:", formData);
       onSave(formData, editMode ? initialData?.id : undefined);
       // Reset form if not in edit mode
       if (!editMode) {
@@ -189,11 +188,10 @@ export function AddProductModal({
           {/* QR ID */}
           <div className="space-y-2">
             <Input
-              placeholder="QR ID (8 characters)"
+              placeholder="Unique QR ID "
               value={formData.qrId}
               onChange={(e) => handleInputChange("qrId", e.target.value)}
               className="w-full"
-              maxLength={8}
               disabled={editMode}
             />
           </div>
