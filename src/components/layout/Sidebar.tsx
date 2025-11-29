@@ -10,6 +10,7 @@ import {
   HomeIcon,
   LogOut,
   LogIn,
+  ShoppingCart,
 } from "lucide-react";
 import logo from "../../assets/logo.png";
 import { useNavigate, useLocation, Link } from "react-router-dom";
@@ -50,6 +51,11 @@ const generalNavItems: NavItem[] = [
     title: "Customers",
     icon: Users,
     href: "customers",
+  },
+  {
+    title: "Orders",
+    icon: ShoppingCart,
+    href: "orders",
   },
   {
     title: "Assign",

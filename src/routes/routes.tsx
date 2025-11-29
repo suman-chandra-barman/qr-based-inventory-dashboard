@@ -21,6 +21,7 @@ import TermsConditionPage from "@/pages/TermsConditionPage";
 import EditTermsConditionPage from "@/pages/EditTermsConditionPage";
 import PrivacyPolicyPage from "@/pages/PrivacyPolicyPage";
 import Assign from "@/pages/AssignPage";
+import OrdersPage from "@/pages/OrdersPage";
 
 const router = createBrowserRouter([
   {
@@ -56,7 +57,11 @@ const router = createBrowserRouter([
         path: "/customers",
         element: <CustomersPage />,
       },
-       {
+      {
+        path: "/orders",
+        element: <OrdersPage />,
+      },
+      {
         path: "/assign",
         element: <Assign />,
       },
@@ -100,7 +105,6 @@ const router = createBrowserRouter([
         path: "/settings/about-us/edit",
         element: <EditAboutUsPage />,
       },
-      
     ],
   },
   {
@@ -119,7 +123,7 @@ const router = createBrowserRouter([
     path: "reset-password",
     element: <ResetPasswordPage />,
   },
-   {
+  {
     path: "change-password",
     element: <ChangePasswordPage />,
   },
