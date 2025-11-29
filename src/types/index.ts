@@ -81,7 +81,7 @@ export interface OrderItem {
 export interface Order {
   _id: string;
   id?: string;
-  user: string | null;
+  user: { _id: string; name: string; email: string } | null;
   items: OrderItem[];
   totalAmount: number;
   status: "delivered" | "canceled" | "pending" | "processing";

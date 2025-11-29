@@ -126,7 +126,7 @@ export function OrdersTable() {
                     </td>
                     <td className="p-4 align-middle">
                       <span className="font-medium">
-                        {order.user || "Guest User"}
+                        {order.user?.name || "Guest User"}
                       </span>
                     </td>
                     <td className="p-4 align-middle">
