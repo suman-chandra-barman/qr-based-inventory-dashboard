@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -16,7 +17,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ImageUpload } from "@/components/ui/image-upload";
 import type { ProductFormData, AddProductModalProps, Category } from "@/types";
 import { useGetAllCategoriesQuery } from "@/redux/api/api";
 
@@ -40,6 +40,9 @@ export function AddProductModal({
     qrId: initialData?.qrId || "",
   });
 
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
+
   const sizes = ["S", "M", "L", "XL", "XXL"];
 
   // Update form data when initialData changes
@@ -53,6 +56,12 @@ export function AddProductModal({
         size: initialData.size || "",
         qrId: initialData.qrId || "",
       });
+      setExistingImageUrl(
+        initialData.image
+          ? `${import.meta.env.VITE_API_BASE_URL}${initialData.image}`
+          : null
+      );
+      setImagePreview(null);
     } else if (!editMode) {
       // Reset form when switching to add mode
       setFormData({
@@ -63,6 +72,8 @@ export function AddProductModal({
         size: "",
         qrId: "",
       });
+      setExistingImageUrl(null);
+      setImagePreview(null);
     }
   }, [editMode, initialData]);
 
@@ -70,8 +81,19 @@ export function AddProductModal({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleImageChange = (file: File | null) => {
-    setFormData((prev) => ({ ...prev, image: file || undefined }));
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData((prev) => ({ ...prev, image: file }));
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setFormData((prev) => ({ ...prev, image: undefined }));
+      setImagePreview(null);
+    }
   };
 
   const handleSave = () => {
@@ -94,6 +116,8 @@ export function AddProductModal({
           size: "",
           qrId: "",
         });
+        setImagePreview(null);
+        setExistingImageUrl(null);
       }
       onOpenChange(false);
     }
@@ -108,42 +132,40 @@ export function AddProductModal({
       size: "",
       qrId: "",
     });
+    setImagePreview(null);
+    setExistingImageUrl(null);
     onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl">
+      <DialogContent className=" lg:max-w-xl">
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold">
             {editMode ? "Edit Product" : "Add New Product"}
           </DialogTitle>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute right-4 top-4 h-6 w-6 p-0"
-            onClick={handleClose}
-          ></Button>
         </DialogHeader>
 
-        <div className="space-y-2 py-4">
+        <div className="grid grid-cols-2 gap-4">
           {/* Product Name */}
           <div className="space-y-2">
+            <Label htmlFor="productName">Product Name</Label>
             <Input
-              placeholder="Product name"
+              id="productName"
+              placeholder="Enter product name"
               value={formData.name}
               onChange={(e) => handleInputChange("name", e.target.value)}
-              className="w-full"
             />
           </div>
 
           {/* Product Category */}
           <div className="space-y-2">
+            <Label htmlFor="productCategory">Product Category</Label>
             <Select
               value={formData.category}
               onValueChange={(value) => handleInputChange("category", value)}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger id="productCategory " className="w-full" >
                 <SelectValue placeholder="Select product category" />
               </SelectTrigger>
               <SelectContent>
@@ -158,21 +180,23 @@ export function AddProductModal({
 
           {/* Price */}
           <div className="space-y-2">
+            <Label htmlFor="productPrice">Price</Label>
             <Input
-              placeholder="Price: $45"
+              id="productPrice"
+              placeholder="Enter price"
               value={formData.price}
               onChange={(e) => handleInputChange("price", e.target.value)}
-              className="w-full"
             />
           </div>
 
           {/* Size */}
           <div className="space-y-2">
+            <Label htmlFor="productSize">Size</Label>
             <Select
               value={formData.size}
               onValueChange={(value) => handleInputChange("size", value)}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger id="productSize" className="w-full" >
                 <SelectValue placeholder="Select size" />
               </SelectTrigger>
               <SelectContent>
@@ -187,18 +211,24 @@ export function AddProductModal({
 
           {/* QR ID */}
           <div className="space-y-2">
+            <Label htmlFor="productQrId">QR ID</Label>
             <Input
-              placeholder="Unique QR ID "
+              id="productQrId"
+              placeholder="Enter unique QR ID"
               value={formData.qrId}
               onChange={(e) => handleInputChange("qrId", e.target.value)}
-              className="w-full"
               disabled={editMode}
             />
           </div>
 
+          {/* Placeholder for spacing */}
+          <div></div>
+
           {/* Description */}
-          <div className="space-y-2">
+          <div className="space-y-2 col-span-2">
+            <Label htmlFor="productDescription">Description</Label>
             <Textarea
+              id="productDescription"
               placeholder="Write product description..."
               value={formData.des}
               onChange={(e) => handleInputChange("des", e.target.value)}
@@ -206,42 +236,51 @@ export function AddProductModal({
             />
           </div>
 
-          {/* Image Upload */}
-          <ImageUpload
-            onImageChange={handleImageChange}
-            existingImageUrl={
-              editMode && initialData?.image
-                ? `${import.meta.env.VITE_API_BASE_URL}${initialData.image}`
-                : undefined
-            }
-          />
-
-          {/* Save Button */}
-          <Button
-            onClick={handleSave}
-            className="w-full rounded-full bg-yellow-400 hover:bg-yellow-500 text-black font-medium h-12"
-            disabled={
-              isLoading ||
-              !formData.category ||
-              !formData.name ||
-              !formData.des ||
-              !formData.price ||
-              !formData.size ||
-              (!editMode && !formData.qrId) ||
-              (!editMode && !formData.image)
-            }
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                {editMode ? "Updating..." : "Saving..."}
-              </>
-            ) : editMode ? (
-              "Update"
-            ) : (
-              "Save"
+          {/* Product Image */}
+          <div className="space-y-2 col-span-2">
+            <Label htmlFor="productImage">
+              Product Image
+              {editMode ? " (optional - leave empty to keep current)" : ""}
+            </Label>
+            <Input
+              id="productImage"
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+            />
+            {(imagePreview || existingImageUrl) && (
+              <div className="mt-2 aspect-square w-32 bg-gray-50 rounded-lg overflow-hidden">
+                <img
+                  src={imagePreview || existingImageUrl || ""}
+                  alt="Preview"
+                  className="w-full h-full object-cover"
+                />
+              </div>
             )}
-          </Button>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex gap-2 justify-end col-span-2">
+            <Button variant="outline" onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSave}
+              disabled={isLoading}
+              className="bg-[#FFD700] text-[#003366] hover:bg-amber-400"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {editMode ? "Updating..." : "Creating..."}
+                </>
+              ) : editMode ? (
+                "Update Product"
+              ) : (
+                "Create Product"
+              )}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
