@@ -37,8 +37,7 @@ export default function ForgotPasswordPage() {
   const onSubmit = async (data: TForgotPasswordFormData) => {
     try {
       const res = await forgotPassword({ email: data.email }).unwrap();
-      console.log("Forgot Password response:", res);
-
+      
       toast.success(res?.message || "OTP sent successfully!");
       form.reset();
       navigate("/otp-verification", { state: { email: data.email } });

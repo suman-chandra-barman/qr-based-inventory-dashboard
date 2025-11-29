@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { ArrowLeft, Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router";
-import { Checkbox } from "@/components/ui/checkbox";
 import signinImage from "@/assets/signin.png";
 
 // RTK Query & Redux
@@ -56,8 +55,6 @@ export default function SignInPage() {
         password: data.password,
       }).unwrap();
 
-      console.log("Login response:", res);
-
       // Extract token - check if it's accessToken or token
       const token = res.data?.accessToken || res.data?.token;
       const refreshToken = res.data?.refreshToken;
@@ -72,21 +69,12 @@ export default function SignInPage() {
       );
 
       toast.success("Login successful!");
-
       form.reset();
 
       navigate("/dashboard");
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to sign in.");
-    }
-  };
-
-  const handleBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate("/");
     }
   };
 

@@ -15,7 +15,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useNavigate } from "react-router";
-import { ForgotPasswordModal } from "@/components/modals/ForgotPasswordModal";
 import { useChangePasswordMutation } from "@/redux/api/api";
 import BackButton from "@/components/buttons/BackButton";
 
@@ -36,7 +35,6 @@ export function ChangePasswordPage() {
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [showForgotModal, setShowForgotModal] = useState(false);
   const navigate = useNavigate();
   const [changePassword, { isLoading }] = useChangePasswordMutation();
 
@@ -213,18 +211,6 @@ export function ChangePasswordPage() {
                 )}
               />
 
-              {/* Forgot Password Link */}
-              <div className="flex justify-start">
-                <Button
-                  type="button"
-                  variant="link"
-                  className="p-0 h-auto text-gray-600 hover:text-gray-800"
-                  onClick={() => setShowForgotModal(true)}
-                >
-                  Forget password?
-                </Button>
-              </div>
-
               {/* Submit Button */}
               <Button
                 type="submit"
@@ -237,11 +223,6 @@ export function ChangePasswordPage() {
           </Form>
         </div>
       </div>
-
-      <ForgotPasswordModal
-        open={showForgotModal}
-        onOpenChange={setShowForgotModal}
-      />
     </div>
   );
 }

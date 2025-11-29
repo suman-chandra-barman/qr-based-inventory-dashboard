@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import {  User, Mail, Phone, Edit } from "lucide-react";
+import { User, Mail, Phone, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -33,7 +33,6 @@ export default function PersonalInformationPage() {
       });
 
       const result = await response.json();
-      console.log("User profile response:", result);
 
       if (response.ok && result.success && result.data) {
         const imageUrl = result.data.image || result.data.profileImage || "";
@@ -59,14 +58,12 @@ export default function PersonalInformationPage() {
     }
   };
 
-
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="p-6">
         {/* Header */}
         <div className="flex items-center gap-3 mb-8 border p-3 bg-white rounded-xl">
-         <BackButton />
+          <BackButton />
           <h1 className="text-lg font-medium text-gray-900">
             Personal Information
           </h1>
