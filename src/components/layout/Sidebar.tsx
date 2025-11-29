@@ -12,7 +12,7 @@ import {
   LogIn,
 } from "lucide-react";
 import logo from "../../assets/logo.png";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store";
 import { useState } from "react";
@@ -150,7 +150,9 @@ const Sidebar: React.FC<SidebarProps> = ({
             isCollapsed ? "hidden" : ""
           )}
         >
-          <img src={logo} alt="Logo" className="w-full" />
+          <Link to="/dashboard">
+            <img src={logo} alt="Logo" className="w-12 h-12 object-contain" />
+          </Link>
         </div>
         <Button
           variant="ghost"
